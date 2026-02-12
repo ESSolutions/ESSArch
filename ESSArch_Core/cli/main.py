@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 from pydoc import locate
 
 import click
@@ -116,8 +117,10 @@ def create_data_directories(path):
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
 @click.option('--data-directory', type=click.Path(),
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
+@click.option('--user-config-file', type=click.Path(exists=True), help='Path to user configuration file.')
+@click.option('--role-config-file', type=click.Path(exists=True), help='Path to role configuration file.')
 @click.pass_context
-def install(ctx, data_directory):
+def install(ctx, data_directory, role_config_file, user_config_file):
     _check()
     if data_directory is None:
         data_directory = click.prompt('Data directory', default='/ESSArch/data', type=click.Path())
@@ -136,15 +139,30 @@ def install(ctx, data_directory):
         installDefaultStorageMethodTargetRelations,
         installDefaultStoragePolicies,
         installDefaultStorageTargets,
-        installDefaultUsers,
         installPipelines,
+        installRoles,
         installSearchIndices,
+        installUsers,
     )
     installDefaultFeatures()
     installDefaultEventTypes()
     installDefaultParameters()
     installDefaultSite()
-    installDefaultUsers()
+
+    role_config_file_name = None
+    role_config_file_root_dir = None
+    if role_config_file:
+        role_config_file_name = Path(role_config_file).name
+        role_config_file_root_dir = Path(role_config_file).parent
+    installRoles(config_file=role_config_file_name, root_dir=role_config_file_root_dir)
+
+    user_config_file_name = None
+    user_config_file_root_dir = None
+    if user_config_file:
+        user_config_file_name = Path(user_config_file).name
+        user_config_file_root_dir = Path(user_config_file).parent
+    installUsers(config_file=user_config_file_name, root_dir=user_config_file_root_dir)
+
     installDefaultPaths()
     installDefaultStoragePolicies()
     installDefaultStorageMethods()
@@ -165,8 +183,9 @@ def install(ctx, data_directory):
 @click.option('--remove-extra', is_flag=True, default=False,
               help='Remove extra configuration not part of defaults (requires --no-dry-run).')
 @click.option('-y', '--yes', is_flag=True, help='Skip confirmation prompts.')
+@click.option('--role-config-file', type=click.Path(exists=True), help='Path to role configuration file.')
 @click.pass_context
-def upgrade(ctx, data_directory, dry_run, update_existing, remove_extra, yes):
+def upgrade(ctx, data_directory, dry_run, update_existing, remove_extra, yes, role_config_file):
     _check()
 
     if remove_extra and dry_run:
@@ -192,12 +211,19 @@ def upgrade(ctx, data_directory, dry_run, update_existing, remove_extra, yes):
         installDefaultEventTypes,
         installDefaultParameters,
         installDefaultPaths,
-        installDefaultRoles,
+        installRoles,
     )
     installDefaultEventTypes(dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
     installDefaultParameters(dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
     installDefaultPaths(dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
-    installDefaultRoles(dry_run=dry_run, remove_extra=remove_extra)
+
+    role_config_file_name = None
+    role_config_file_root_dir = None
+    if role_config_file:
+        role_config_file_name = Path(role_config_file).name
+        role_config_file_root_dir = Path(role_config_file).parent
+    installRoles(dry_run=dry_run, remove_extra=remove_extra,
+                 config_file=role_config_file_name, root_dir=role_config_file_root_dir)
 
 
 @click.option('-P', '--pool', default='prefork',

@@ -1,0 +1,112 @@
+{
+  "users": [
+    {
+      "username": "user",
+      "first_name": "User",
+      "last_name": "Lastname",
+      "email": "user@essolutions.se",
+      "password": "user",
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["User"]
+        }
+      ]
+    },
+    {
+      "username": "producer",
+      "first_name": "Producer",
+      "last_name": "Lastname",
+      "email": "producer@essolutions.se",
+      "password": "producer",
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["Producer"]
+        }
+      ]
+    },
+    {
+      "username": "submitter",
+      "first_name": "Submitter",
+      "last_name": "Lastname",
+      "email": "submitter@essolutions.se",
+      "password": "submitter",
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["Submitter"]
+        }
+      ]
+    },
+    {
+      "username": "deliverymgr",
+      "first_name": "Delivery Manager",
+      "last_name": "Lastname",
+      "email": "deliverymgr@essolutions.se",
+      "password": "deliverymgr",
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["Delivery Manager"]
+        }
+      ]
+    },
+    {
+      "username": "archivist",
+      "first_name": "Archivist",
+      "last_name": "Lastname",
+      "email": "archivist@essolutions.se",
+      "password": "archivist",
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["Archivist"]
+        }
+      ]
+    },
+    {
+      "username": "admin",
+      "first_name": "Admin",
+      "last_name": "Lastname",
+      "email": "admin@essolutions.se",
+      "password": "admin",
+      "is_staff": true,
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["Administrator"]
+        }
+      ]
+    },
+    {
+      "username": "sysadmin",
+      "first_name": "Sysadmin",
+      "last_name": "Lastname",
+      "email": "sysadmin@essolutions.se",
+      "password": "sysadmin",
+      "is_staff": true,
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": ["System Administrator"]
+        }
+      ]
+    },
+    {
+      "username": "superuser",
+      "first_name": "Superuser",
+      "last_name": "Lastname",
+      "email": "superuser@essolutions.se",
+      "password": "superuser",
+      "is_staff": true,
+      "is_superuser": true,
+      "organizations": [
+        {
+          "name": "Default",
+          "roles": []
+        }
+      ]
+    }
+  ]
+}

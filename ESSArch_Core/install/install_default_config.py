@@ -21,10 +21,12 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
+import json
 from pathlib import Path
 
 import click
 import django
+from django.db import transaction
 
 django.setup()
 
@@ -39,7 +41,7 @@ from elasticsearch.client import IngestClient  # noqa isort:skip
 from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
-from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
+from ESSArch_Core.auth.models import Group, GroupMemberRole, Member  # noqa isort:skip
 from ESSArch_Core.configuration.models import (  # noqa isort:skip
     EventType,
     Feature,
@@ -66,7 +68,8 @@ def installDefaultConfiguration():
     installDefaultEventTypes()
     installDefaultParameters()
     installDefaultSite()
-    installDefaultUsers()
+    installRoles()
+    installUsers()
     installDefaultPaths()
     installDefaultStoragePolicies()
     installDefaultStorageMethods()
@@ -245,7 +248,7 @@ def sync_event_types(event_definitions, dry_run=False, update_existing=False, re
     click.echo(f"  Removed:   {removed}")
 
     if dry_run:
-        click.secho("\nDry-run complete — no changes were made.", fg="blue")
+        click.secho("\nDry-run complete - no changes were made.", fg="blue")
     else:
         click.secho("\nEvent type sync complete.", fg="green")
 
@@ -345,6 +348,16 @@ def installDefaultEventTypes(dry_run=False, update_existing=False, remove_extra=
     return 0
 
 
+def normalize_permission(permission):
+    if len(permission) == 3:
+        codename, app, model = permission
+        return codename, app, model, None
+    elif len(permission) == 4:
+        return tuple(permission)
+    else:
+        raise ValueError(f"Invalid permission format: {permission}")
+
+
 def sync_role_permissions(role, permission_defs, dry_run=False, remove_extra=False):
     """
     Sync permissions for a role.
@@ -362,34 +375,39 @@ def sync_role_permissions(role, permission_defs, dry_run=False, remove_extra=Fal
         bold=True,
     )
 
-    if remove_extra:
-        click.secho("  Extra permissions WILL be removed", fg="yellow")
-    else:
-        click.echo("  Extra permissions will NOT be removed")
+    # Normalize permissions
+    normalized = [normalize_permission(p) for p in permission_defs]
 
-    # --------------------------------
-    # Fetch desired permissions (bulk)
-    # --------------------------------
-    query = Q()
-    for codename, app, model in permission_defs:
-        query |= Q(
-            codename=codename,
-            content_type__app_label=app,
-            content_type__model=model,
-        )
-
-    desired_permissions = Permission.objects.filter(query)
-
-    requested_keys = set(permission_defs)
-    found_keys = {
-        (p.codename, p.content_type.app_label, p.content_type.model)
-        for p in desired_permissions
+    requested_keys = {
+        (codename, app, model)
+        for codename, app, model, _ in normalized
     }
+
+    description_lookup = {
+        (codename, app, model): description
+        for codename, app, model, description in normalized
+    }
+
+    all_permissions = Permission.objects.select_related("content_type").all()
+
+    permission_lookup = {
+        (p.codename, p.content_type.app_label, p.content_type.model): p
+        for p in all_permissions
+    }
+
+    desired_permissions = []
+    missing_in_db = []
+
+    for key in requested_keys:
+        perm = permission_lookup.get(key)
+        if perm:
+            desired_permissions.append(perm)
+        else:
+            missing_in_db.append(key)
 
     # --------------------------------
     # Missing permissions in DB
     # --------------------------------
-    missing_in_db = requested_keys - found_keys
     for codename, app, model in missing_in_db:
         click.secho(
             f"  [x] Missing in DB: {app}.{model}.{codename}",
@@ -409,38 +427,39 @@ def sync_role_permissions(role, permission_defs, dry_run=False, remove_extra=Fal
     # --------------------------------
     # Add missing permissions
     # --------------------------------
-    for perm in to_add:
-        click.secho(
-            f"  [+] {'Would add' if dry_run else 'Added'}: "
-            f"{perm.content_type.app_label}.{perm.codename}",
-            fg="green",
-        )
+    if to_add:
+        for perm in to_add:
+            desc = description_lookup.get(
+                (perm.codename, perm.content_type.app_label, perm.content_type.model)
+            )
+            click.secho(
+                f"  [+] {'Would add' if dry_run else 'Added'}: "
+                f"{perm.content_type.app_label}.{perm.codename} - {desc}",
+                fg="green",
+            )
+
         if not dry_run:
-            role.permissions.add(perm)
+            role.permissions.add(*to_add)
 
     # --------------------------------
     # Existing permissions
     # --------------------------------
     for perm in already_present:
-        click.echo(
-            f"  [=] Exists: {perm.content_type.app_label}.{perm.codename}"
-        )
+        click.echo(f"  [=] Exists: {perm.content_type.app_label}.{perm.codename}")
 
     # --------------------------------
     # Extra permissions
     # --------------------------------
-    for perm in extra:
-        action = "Would remove" if dry_run else "Removed"
-        color = "red" if remove_extra else "yellow"
-
-        click.secho(
-            f"  [!] Extra: {perm.content_type.app_label}.{perm.codename}" +
-            (f" → {action}" if remove_extra else ""),
-            fg=color,
-        )
+    if extra:
+        for perm in extra:
+            click.secho(
+                f"  [!] Extra: {perm.content_type.app_label}.{perm.codename}" +
+                (" → Would remove" if dry_run else " → Removed" if remove_extra else ""),
+                fg="yellow" if not remove_extra else "red"
+            )
 
         if remove_extra and not dry_run:
-            role.permissions.remove(perm)
+            role.permissions.remove(*extra)
 
     # --------------------------------
     # Summary
@@ -452,713 +471,69 @@ def sync_role_permissions(role, permission_defs, dry_run=False, remove_extra=Fal
     click.echo(f"  Missing in DB: {len(missing_in_db)}")
 
     if dry_run:
-        click.secho("\nDry-run complete — no changes were made.", fg="blue")
+        click.secho("\nDry-run complete - no changes were made.", fg="blue")
     else:
         click.secho("\nPermission sync complete.", fg="green")
 
 
-def installDefaultRoles(dry_run=False, remove_extra=False):
+def get_or_create_role(label, aliases=None):
+    aliases = aliases or []
+
+    query = Q(label=label)
+    for alias in aliases:
+        query |= Q(label=alias)
+
+    try:
+        role = GroupMemberRole.objects.get(query)
+        click.secho(f"-> role '{label}' already exists", fg="yellow")
+    except GroupMemberRole.MultipleObjectsReturned:
+        click.secho(f"-> multiple roles found for '{label}'", fg="red")
+        role = GroupMemberRole.objects.filter(query).first()
+    except GroupMemberRole.DoesNotExist:
+        click.echo(f"-> installing role '{label}'")
+        role, _ = GroupMemberRole.objects.get_or_create(label=label)
+
+    return role
+
+
+def installRoles(dry_run=False, remove_extra=False, config_file=None, root_dir=None):
     click.echo("Installing roles...")
 
-    #####################################
-    # Roles and permissions
-    #
+    if not root_dir:
+        root_dir = Path(__file__).resolve().parent.parent
 
-    try:
-        role_user = GroupMemberRole.objects.get(Q(label='User') | Q(label='user'))
-        click.secho("-> role 'User' or 'user' already exist", fg='red')
-    except GroupMemberRole.MultipleObjectsReturned:
-        click.secho("-> multiple roles exists for 'User' or 'user' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'User'")
-        role_user, _ = GroupMemberRole.objects.get_or_create(label='User')
+    if not config_file:
+        config_file = 'templates/roles_permissions.json'
 
-    permissions_user = [
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('can_upload', 'ip', 'informationpackage'),  # Can upload files to IP
-        ('set_uploaded', 'ip', 'informationpackage'),  # Can set IP as uploaded
-        ('prepare_sip', 'ip', 'informationpackage'),  # Can prepare SIP
-        ('create_sip', 'ip', 'informationpackage'),  # Can create SIP
-        ('submit_sip', 'ip', 'informationpackage'),  # Can submit SIP
-        ('prepare_ip', 'ip', 'informationpackage'),  # Can prepare IP "backend"
-        ('view_workarea', 'ip', 'workarea'),  # Can view workarea
-        ('view_order', 'ip', 'order'),  # Can view order
-        ('view_ordertype', 'ip', 'ordertype'),  # Can view order type
-        ('view_submissionagreement', 'profiles', 'submissionagreement'),  # Can view submission agreement
-        ('view_profile', 'profiles', 'profile'),  # Can view profile
-        ('view_profileip', 'profiles', 'profileip'),  # Can view profile ip
-        ('view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can view submission agreement ip data  # noqa isort:skip
-        ('view_appraisaljob', 'maintenance', 'appraisaljob'),  # Can view appraisal job
-        ('view_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can view appraisal job entry
-        ('view_conversionjob', 'maintenance', 'conversionjob'),  # Can view conversion job
-        ('view_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can view conversion job entry
-        ('view_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can view appraisal template
-        ('view_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can view conversion template
-        ('view_tag', 'tags', 'tag'),  # Can view tag
-        ('search', 'tags', 'tag'),  # Can search
-        ('view_structure', 'tags', 'structure'),  # Can view structure
-        ('view_tagstructure', 'tags', 'tagstructure'),  # Can view tag structure
-        ('view_tagversion', 'tags', 'tagversion'),  # Can view tag version
-        ('view_structureunit', 'tags', 'structureunit'),  # Can view structure unit
-        ('view_mediumtype', 'tags', 'mediumtype'),  # Can view medium type
-        ('view_nodeidentifier', 'tags', 'nodeidentifier'),  # Can view node identifier
-        ('view_nodeidentifiertype', 'tags', 'nodeidentifiertype'),  # Can view node identifier type
-        ('view_nodenote', 'tags', 'nodenote'),  # Can view node note
-        ('view_nodenotetype', 'tags', 'nodenotetype'),  # Can view node note type
-        ('view_noderelationtype', 'tags', 'noderelationtype'),  # Can view node relation type
-        ('view_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can view rule convention type
-        ('view_structuretype', 'tags', 'structuretype'),  # Can view structure type
-        ('view_structureunitrelation', 'tags', 'structureunitrelation'),  # Can view structure unit relation
-        ('view_structureunittype', 'tags', 'structureunittype'),  # Can view structure unit type
-        ('view_tagversionrelation', 'tags', 'tagversionrelation'),  # Can view tag version relation
-        ('view_search', 'tags', 'search'),  # Can view search
-        ('view_tagversiontype', 'tags', 'tagversiontype'),  # Can view node type
-        ('view_location', 'tags', 'location'),  # Can view location
-        ('view_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can view location function type
-        ('view_locationleveltype', 'tags', 'locationleveltype'),  # Can view location level type
-        ('view_metrictype', 'tags', 'metrictype'),  # Can view metric type
-        ('view_delivery', 'tags', 'delivery'),  # Can view delivery
-        ('view_deliverytype', 'tags', 'deliverytype'),  # Can view delivery type
-        ('view_transfer', 'tags', 'transfer'),  # Can view transfer
-        ('view_structurerelationtype', 'tags', 'structurerelationtype'),  # Can view structure relation type
-        ('view_structurerelation', 'tags', 'structurerelation'),  # Can view structure relation
-    ]
-    sync_role_permissions(role_user, permissions_user, dry_run=dry_run, remove_extra=remove_extra)
+    config_path = Path(root_dir) / config_file
 
-    try:
-        role_producer = GroupMemberRole.objects.get(Q(label='Producer') | Q(label='producer'))
-        click.secho("-> role 'Producer' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'Producer'")
-        role_producer, _ = GroupMemberRole.objects.get_or_create(label='Producer')
+    if not config_path.exists():
+        click.secho(f"Config file not found at {config_path}", fg="red")
+        raise FileNotFoundError(f"Config file not found at {config_path}")
 
-    permissions_producer = [
-        ('add_informationpackage', 'ip', 'informationpackage'),  # Can add information package
-        ('delete_informationpackage', 'ip', 'informationpackage'),  # Can delete information package
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('can_upload', 'ip', 'informationpackage'),  # Can upload files to IP
-        ('set_uploaded', 'ip', 'informationpackage'),  # Can set IP as uploaded
-        ('prepare_sip', 'ip', 'informationpackage'),  # Can prepare SIP
-        ('create_sip', 'ip', 'informationpackage'),  # Can create SIP
-        ('submit_sip', 'ip', 'informationpackage'),  # Can submit SIP
-        ('prepare_ip', 'ip', 'informationpackage'),  # Can prepare IP "backend"
-        ('see_other_user_ip_files', 'ip', 'informationpackage'),  # Can see files in other users IPs
-        ('add_eventip', 'ip', 'eventip'),  # Can add Events related to IP
-        ('change_profileip', 'profiles', 'profileip'),  # Can change profile ip
-        ('add_profileipdata', 'profiles', 'profileipdata'),  # Can add profile ip data
-        ('add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can add submission agreement ip data # noqa isort:skip
-    ]
-    sync_role_permissions(role_producer, permissions_producer, dry_run=dry_run, remove_extra=remove_extra)
+    with open(config_path, encoding="utf8") as f:
+        config = json.load(f)
 
-    try:
-        role_submitter = GroupMemberRole.objects.get(Q(label='Submitter') | Q(label='submitter'))
-        click.secho("-> role 'Submitter' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'Submitter'")
-        role_submitter, _ = GroupMemberRole.objects.get_or_create(label='Submitter')
+    created_roles = []
 
-    permissions_submitter = [
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('submit_sip', 'ip', 'informationpackage'),  # Can submit SIP
-        ('see_other_user_ip_files', 'ip', 'informationpackage'),  # Can see files in other users IPs
-        ('add_eventip', 'ip', 'eventip'),  # Can add Events related to IP
-    ]
-    sync_role_permissions(role_submitter, permissions_submitter, dry_run=dry_run, remove_extra=remove_extra)
+    for role_label, role_data in config.items():
+        role = get_or_create_role(
+            role_label,
+            aliases=role_data.get("aliases", [])
+        )
 
-    try:
-        role_delivery_manager = GroupMemberRole.objects.get(label='Delivery Manager')
-        click.secho("-> role 'Delivery Manager' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'Delivery Manager'")
-        role_delivery_manager, _ = GroupMemberRole.objects.get_or_create(label='Delivery Manager')
+        permissions = role_data.get("permissions", [])
 
-    permissions_delivery_manager = [
-        ('add_informationpackage', 'ip', 'informationpackage'),  # Can add information package
-        ('delete_informationpackage', 'ip', 'informationpackage'),  # Can delete information package
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('can_upload', 'ip', 'informationpackage'),  # Can upload files to IP
-        ('prepare_sip', 'ip', 'informationpackage'),  # Can prepare SIP
-        ('create_sip', 'ip', 'informationpackage'),  # Can create SIP
-        ('submit_sip', 'ip', 'informationpackage'),  # Can submit SIP
-        ('transfer_sip', 'ip', 'informationpackage'),  # Can transfer SIP
-        ('change_sa', 'ip', 'informationpackage'),  # Can change SA connected to IP
-        ('lock_sa', 'ip', 'informationpackage'),  # Can lock SA to IP
-        ('receive', 'ip', 'informationpackage'),  # Can receive IP
-        ('preserve', 'ip', 'informationpackage'),  # Can preserve IP
-        ('add_to_ingest_workarea', 'ip', 'informationpackage'),  # Can add IP to ingest workarea
-        ('add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'),  # Can add IP as tar to ingest workarea
-        ('add_to_ingest_workarea_as_new', 'ip', 'informationpackage'),  # Can add IP as new generation to ingest workarea  # noqa isort:skip
-        ('prepare_ip', 'ip', 'informationpackage'),  # Can prepare IP "backend"
-        ('delete_first_generation', 'ip', 'informationpackage'),  # Can delete first generation of IP
-        ('delete_last_generation', 'ip', 'informationpackage'),  # Can delete last generation of IP
-        ('see_other_user_ip_files', 'ip', 'informationpackage'),  # Can see files in other users IPs
-        ('add_eventip', 'ip', 'eventip'),  # Can add Events related to IP
-        ('change_profileip', 'profiles', 'profileip'),  # Can change profile ip
-        ('add_profileipdata', 'profiles', 'profileipdata'),  # Can add profile ip data
-        ('add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can add submission agreement ip data  # noqa isort:skip
-    ]
-    sync_role_permissions(role_delivery_manager, permissions_delivery_manager,
-                          dry_run=dry_run, remove_extra=remove_extra)
+        sync_role_permissions(
+            role,
+            permissions,
+            dry_run=dry_run,
+            remove_extra=remove_extra,
+        )
 
-    try:
-        role_archivist = GroupMemberRole.objects.get(Q(label='Archivist') | Q(label='archivist'))
-        click.secho("-> role 'Archivist' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'Archivist'")
-        role_archivist, _ = GroupMemberRole.objects.get_or_create(label='Archivist')
+        created_roles.append(role)
 
-    permissions_archivist = [
-        ('view_agent', 'agents', 'agent'),  # Can view agent
-        ('view_agentfunction', 'agents', 'agentfunction'),  # Can view agent function
-        ('view_agentidentifier', 'agents', 'agentidentifier'),  # Can view agent identifier
-        ('view_agentidentifiertype', 'agents', 'agentidentifiertype'),  # Can view agent identifier type
-        ('view_agentname', 'agents', 'agentname'),  # Can view agent name
-        ('view_agentnametype', 'agents', 'agentnametype'),  # Can view agent name type
-        ('view_agentnote', 'agents', 'agentnote'),  # Can view agent note
-        ('view_agentnotetype', 'agents', 'agentnotetype'),  # Can view agent note type
-        ('view_agentplace', 'agents', 'agentplace'),  # Can view agent place
-        ('view_agentplacetype', 'agents', 'agentplacetype'),  # Can view agent place type
-        ('view_agentrelation', 'agents', 'agentrelation'),  # Can view agent relation
-        ('view_agentrelationtype', 'agents', 'agentrelationtype'),  # Can view agent relation type
-        ('view_agenttaglink', 'agents', 'agenttaglink'),  # Can view Agent node relation
-        ('view_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'),  # Can view agent tag relation type    # noqa isort:skip
-        ('view_agenttype', 'agents', 'agenttype'),  # Can view agent type
-        ('view_authoritytype', 'agents', 'authoritytype'),  # Can view authority type
-        ('view_mainagenttype', 'agents', 'mainagenttype'),  # Can view main agent type
-        ('view_refcode', 'agents', 'refcode'),  # Can view ref code
-        ('view_sourcesofauthority', 'agents', 'sourcesofauthority'),  # Can view sources of authority
-        ('view_topography', 'agents', 'topography'),  # Can view topography
-        ('add_informationpackage', 'ip', 'informationpackage'),  # Can add information package
-        ('delete_informationpackage', 'ip', 'informationpackage'),  # Can delete information package
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('transfer_sip', 'ip', 'informationpackage'),  # Can transfer SIP
-        ('change_sa', 'ip', 'informationpackage'),  # Can change SA connected to IP
-        ('lock_sa', 'ip', 'informationpackage'),  # Can lock SA to IP
-        ('receive', 'ip', 'informationpackage'),  # Can receive IP
-        ('preserve', 'ip', 'informationpackage'),  # Can preserve IP
-        ('prepare_ip', 'ip', 'informationpackage'),  # Can prepare IP "backend"
-        ('prepare_dip', 'ip', 'informationpackage'),  # Can prepare DIP
-        ('preserve_dip', 'ip', 'informationpackage'),  # Can preserve DIP
-        ('get_from_storage', 'ip', 'informationpackage'),  # Can get extracted IP from storage
-        ('get_tar_from_storage', 'ip', 'informationpackage'),  # Can get packaged IP from storage
-        ('get_from_storage_as_new', 'ip', 'informationpackage'),  # Can get IP "as new" from storage
-        ('create_as_new', 'ip', 'informationpackage'),  # Can create IP as new generation
-        ('view_accessaid', 'access', 'accessaid'),  # Can view accessAid
-        ('add_accessaid', 'access', 'accessaid'),  # Can add accessAid
-        ('change_accessaid', 'access', 'accessaid'),  # Can change accessAid
-        ('delete_accessaid', 'access', 'accessaid'),  # Can delete accessAid
-        ('view_accessaidtype', 'access', 'accessaidtype'),  # Can view accessAidType
-        ('add_accessaidtype', 'access', 'accessaidtype'),  # Can add accessAidType
-        ('change_accessaidtype', 'access', 'accessaidtype'),  # Can change accessAidType
-        ('delete_accessaidtype', 'access', 'accessaidtype'),  # Can delete accessAidType
-        ('add_to_ingest_workarea', 'ip', 'informationpackage'),  # Can add IP to ingest workarea
-        ('add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'),  # Can add IP as tar to ingest workarea
-        ('add_to_ingest_workarea_as_new', 'ip', 'informationpackage'),  # Can add IP as new generation to ingest workarea  # noqa isort:skip
-        ('diff-check', 'ip', 'informationpackage'),  # Can diff-check IP
-        ('query', 'ip', 'informationpackage'),  # Can query IP
-        ('delete_first_generation', 'ip', 'informationpackage'),  # Can delete first generation of IP
-        ('delete_last_generation', 'ip', 'informationpackage'),  # Can delete last generation of IP
-        ('delete_archived', 'ip', 'informationpackage'),  # Can delete archived IP
-        ('see_all_in_workspaces', 'ip', 'informationpackage'),  # Can see all IPs workspaces
-        ('see_other_user_ip_files', 'ip', 'informationpackage'),  # Can see files in other users IPs
-        ('add_workarea', 'ip', 'workarea'),  # Can add workarea
-        ('change_workarea', 'ip', 'workarea'),  # Can change workarea
-        ('delete_workarea', 'ip', 'workarea'),  # Can delete workarea
-        ('view_workarea', 'ip', 'workarea'),  # Can view workarea
-        ('move_from_ingest_workarea', 'ip', 'workarea'),  # Can move IP from ingest workarea
-        ('move_from_access_workarea', 'ip', 'workarea'),  # Can move IP from access workarea
-        ('preserve_from_ingest_workarea', 'ip', 'workarea'),  # Can preserve IP from ingest workarea
-        ('preserve_from_access_workarea', 'ip', 'workarea'),  # Can preserve IP from access workarea
-        ('add_order', 'ip', 'order'),  # Can add order
-        ('change_order', 'ip', 'order'),  # Can change order
-        ('delete_order', 'ip', 'order'),  # Can delete order
-        ('view_order', 'ip', 'order'),  # Can view order
-        ('prepare_order', 'ip', 'order'),  # Can prepare order
-        ('add_eventip', 'ip', 'eventip'),  # Can add Events related to IP
-        ('add_ordertype', 'ip', 'ordertype'),  # Can add order type
-        ('change_ordertype', 'ip', 'ordertype'),  # Can change order type
-        ('delete_ordertype', 'ip', 'ordertype'),  # Can delete order type
-        ('view_ordertype', 'ip', 'ordertype'),  # Can view order type
-        ('view_submissionagreement', 'profiles', 'submissionagreement'),  # Can view submission agreement
-        ('export_sa', 'profiles', 'submissionagreement'),  # Can export SA
-        ('view_profile', 'profiles', 'profile'),  # Can view profile
-        ('change_profileip', 'profiles', 'profileip'),  # Can change profile ip
-        ('view_profileip', 'profiles', 'profileip'),  # Can view profile ip
-        ('add_profileipdata', 'profiles', 'profileipdata'),  # Can add profile ip data
-        ('view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can view submission agreement ip data  # noqa isort:skip
-        ('add_extensionpackage', 'ProfileMaker', 'extensionpackage'),  # Can add extension package
-        ('add_appraisaljob', 'maintenance', 'appraisaljob'),  # Can add appraisal job
-        ('change_appraisaljob', 'maintenance', 'appraisaljob'),  # Can change appraisal job
-        ('delete_appraisaljob', 'maintenance', 'appraisaljob'),  # Can delete appraisal job
-        ('view_appraisaljob', 'maintenance', 'appraisaljob'),  # Can view appraisal job
-        ('run_appraisaljob', 'maintenance', 'appraisaljob'),  # Can run appraisal job
-        ('add_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can add appraisal job entry
-        ('change_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can change appraisal job entry
-        ('delete_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can delete appraisal job entry
-        ('view_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can view appraisal job entry
-        ('add_conversionjob', 'maintenance', 'conversionjob'),  # Can add conversion job
-        ('change_conversionjob', 'maintenance', 'conversionjob'),  # Can change conversion job
-        ('delete_conversionjob', 'maintenance', 'conversionjob'),  # Can delete conversion job
-        ('view_conversionjob', 'maintenance', 'conversionjob'),  # Can view conversion job
-        ('run_conversionjob', 'maintenance', 'conversionjob'),  # Can run conversion job
-        ('add_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can add conversion job entry
-        ('change_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can change conversion job entry
-        ('delete_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can delete conversion job entry
-        ('view_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can view conversion job entry
-        ('add_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can add appraisal template
-        ('change_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can change appraisal template
-        ('delete_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can delete appraisal template
-        ('view_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can view appraisal template
-        ('add_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can add conversion template
-        ('change_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can change conversion template
-        ('delete_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can delete conversion template
-        ('view_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can view conversion template
-        ('view_tag', 'tags', 'tag'),  # Can view tag
-        ('search', 'tags', 'tag'),  # Can search
-        ('view_structure', 'tags', 'structure'),  # Can view structure
-        ('view_tagstructure', 'tags', 'tagstructure'),  # Can view tag structure
-        ('view_tagversion', 'tags', 'tagversion'),  # Can view tag version
-        ('view_structureunit', 'tags', 'structureunit'),  # Can view structure unit
-        ('view_mediumtype', 'tags', 'mediumtype'),  # Can view medium type
-        ('view_nodeidentifier', 'tags', 'nodeidentifier'),  # Can view node identifier
-        ('view_nodenote', 'tags', 'nodenote'),  # Can view node note
-        ('view_nodenotetype', 'tags', 'nodenotetype'),  # Can view node note type
-        ('view_noderelationtype', 'tags', 'noderelationtype'),  # Can view node relation type
-        ('view_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can view rule convention type
-        ('view_structuretype', 'tags', 'structuretype'),  # Can view structure type
-        ('view_structureunitrelation', 'tags', 'structureunitrelation'),  # Can view structure unit relation
-        ('view_structureunittype', 'tags', 'structureunittype'),  # Can view structure unit type
-        ('view_tagversionrelation', 'tags', 'tagversionrelation'),  # Can view tag version relation
-        ('view_search', 'tags', 'search'),  # Can view search
-        ('view_tagversiontype', 'tags', 'tagversiontype'),  # Can view node type
-        ('view_location', 'tags', 'location'),  # Can view location
-        ('view_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can view location function type
-        ('view_locationleveltype', 'tags', 'locationleveltype'),  # Can view location level type
-        ('view_metrictype', 'tags', 'metrictype'),  # Can view metric type
-        ('view_delivery', 'tags', 'delivery'),  # Can view delivery
-        ('view_deliverytype', 'tags', 'deliverytype'),  # Can view delivery type
-        ('view_transfer', 'tags', 'transfer'),  # Can view transfer
-        ('view_structurerelationtype', 'tags', 'structurerelationtype'),  # Can view structure relation type
-        ('view_structurerelation', 'tags', 'structurerelation'),  # Can view structure relation
-    ]
-    sync_role_permissions(role_archivist, permissions_archivist, dry_run=dry_run, remove_extra=remove_extra)
-
-    try:
-        role_administrator = GroupMemberRole.objects.get(
-            Q(label='Administrator') | Q(label='administrator') | Q(label='admin'))
-        click.secho("-> role 'Administrator' or 'admin' already exist", fg='red')
-    except GroupMemberRole.MultipleObjectsReturned:
-        click.secho("-> multiple roles exists for 'Administrator' or 'admin' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'Administrator'")
-        role_administrator, _ = GroupMemberRole.objects.get_or_create(label='Administrator')
-
-    permissions_administrator = [
-        ('add_agent', 'agents', 'agent'),  # Can add agent
-        ('change_agent', 'agents', 'agent'),  # Can change agent
-        ('change_organization', 'agents', 'agent'),  # Can change organization for agent
-        ('delete_agent', 'agents', 'agent'),  # Can delete agent
-        ('view_agent', 'agents', 'agent'),  # Can view agent
-        ('add_agentfunction', 'agents', 'agentfunction'),  # Can add agent function
-        ('change_agentfunction', 'agents', 'agentfunction'),  # Can change agent function
-        ('delete_agentfunction', 'agents', 'agentfunction'),  # Can delete agent function
-        ('view_agentfunction', 'agents', 'agentfunction'),  # Can view agent function
-        ('add_agentidentifier', 'agents', 'agentidentifier'),  # Can add agent identifier
-        ('change_agentidentifier', 'agents', 'agentidentifier'),  # Can change agent identifier
-        ('delete_agentidentifier', 'agents', 'agentidentifier'),  # Can delete agent identifier
-        ('view_agentidentifier', 'agents', 'agentidentifier'),  # Can view agent identifier
-        ('add_agentidentifiertype', 'agents', 'agentidentifiertype'),  # Can add agent identifier type
-        ('change_agentidentifiertype', 'agents', 'agentidentifiertype'),  # Can change agent identifier type
-        ('delete_agentidentifiertype', 'agents', 'agentidentifiertype'),  # Can delete agent identifier type
-        ('view_agentidentifiertype', 'agents', 'agentidentifiertype'),  # Can view agent identifier type
-        ('add_agentname', 'agents', 'agentname'),  # Can add agent name
-        ('change_agentname', 'agents', 'agentname'),  # Can change agent name
-        ('delete_agentname', 'agents', 'agentname'),  # Can delete agent name
-        ('view_agentname', 'agents', 'agentname'),  # Can view agent name
-        ('add_agentnametype', 'agents', 'agentnametype'),  # Can add agent name type
-        ('change_agentnametype', 'agents', 'agentnametype'),  # Can change agent name type
-        ('delete_agentnametype', 'agents', 'agentnametype'),  # Can delete agent name type
-        ('view_agentnametype', 'agents', 'agentnametype'),  # Can view agent name type
-        ('add_agentnote', 'agents', 'agentnote'),  # Can add agent note
-        ('change_agentnote', 'agents', 'agentnote'),  # Can change agent note
-        ('delete_agentnote', 'agents', 'agentnote'),  # Can delete agent note
-        ('view_agentnote', 'agents', 'agentnote'),  # Can view agent note
-        ('add_agentnotetype', 'agents', 'agentnotetype'),  # Can add agent note type
-        ('change_agentnotetype', 'agents', 'agentnotetype'),  # Can change agent note type
-        ('delete_agentnotetype', 'agents', 'agentnotetype'),  # Can delete agent note type
-        ('view_agentnotetype', 'agents', 'agentnotetype'),  # Can view agent note type
-        ('add_agentplace', 'agents', 'agentplace'),  # Can add agent place
-        ('change_agentplace', 'agents', 'agentplace'),  # Can change agent place
-        ('delete_agentplace', 'agents', 'agentplace'),  # Can delete agent place
-        ('view_agentplace', 'agents', 'agentplace'),  # Can view agent place
-        ('add_agentplacetype', 'agents', 'agentplacetype'),  # Can add agent place type
-        ('change_agentplacetype', 'agents', 'agentplacetype'),  # Can change agent place type
-        ('delete_agentplacetype', 'agents', 'agentplacetype'),  # Can delete agent place type
-        ('view_agentplacetype', 'agents', 'agentplacetype'),  # Can view agent place type
-        ('add_agentrelation', 'agents', 'agentrelation'),  # Can add agent relation
-        ('change_agentrelation', 'agents', 'agentrelation'),  # Can change agent relation
-        ('delete_agentrelation', 'agents', 'agentrelation'),  # Can delete agent relation
-        ('view_agentrelation', 'agents', 'agentrelation'),  # Can view agent relation
-        ('add_agentrelationtype', 'agents', 'agentrelationtype'),  # Can add agent relation type
-        ('change_agentrelationtype', 'agents', 'agentrelationtype'),  # Can change agent relation type
-        ('delete_agentrelationtype', 'agents', 'agentrelationtype'),  # Can delete agent relation type
-        ('view_agentrelationtype', 'agents', 'agentrelationtype'),  # Can view agent relation type
-        ('add_agenttaglink', 'agents', 'agenttaglink'),  # Can add Agent node relation
-        ('change_agenttaglink', 'agents', 'agenttaglink'),  # Can change Agent node relation
-        ('delete_agenttaglink', 'agents', 'agenttaglink'),  # Can delete Agent node relation
-        ('view_agenttaglink', 'agents', 'agenttaglink'),  # Can view Agent node relation
-        ('add_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'),  # Can add agent tag relation type  # noqa isort:skip
-        ('change_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'),  # Can change agent tag relation type  # noqa isort:skip
-        ('delete_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'),  # Can delete agent tag relation type  # noqa isort:skip
-        ('view_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'),  # Can view agent tag relation type  # noqa isort:skip
-        ('add_agenttype', 'agents', 'agenttype'),  # Can add agent type
-        ('change_agenttype', 'agents', 'agenttype'),  # Can change agent type
-        ('delete_agenttype', 'agents', 'agenttype'),  # Can delete agent type
-        ('view_agenttype', 'agents', 'agenttype'),  # Can view agent type
-        ('add_authoritytype', 'agents', 'authoritytype'),  # Can add authority type
-        ('change_authoritytype', 'agents', 'authoritytype'),  # Can change authority type
-        ('delete_authoritytype', 'agents', 'authoritytype'),  # Can delete authority type
-        ('view_authoritytype', 'agents', 'authoritytype'),  # Can view authority type
-        ('add_mainagenttype', 'agents', 'mainagenttype'),  # Can add main agent type
-        ('change_mainagenttype', 'agents', 'mainagenttype'),  # Can change main agent type
-        ('delete_mainagenttype', 'agents', 'mainagenttype'),  # Can delete main agent type
-        ('view_mainagenttype', 'agents', 'mainagenttype'),  # Can view main agent type
-        ('add_refcode', 'agents', 'refcode'),  # Can add ref code
-        ('change_refcode', 'agents', 'refcode'),  # Can change ref code
-        ('delete_refcode', 'agents', 'refcode'),  # Can delete ref code
-        ('view_refcode', 'agents', 'refcode'),  # Can view ref code
-        ('add_sourcesofauthority', 'agents', 'sourcesofauthority'),  # Can add sources of authority
-        ('change_sourcesofauthority', 'agents', 'sourcesofauthority'),  # Can change sources of authority
-        ('delete_sourcesofauthority', 'agents', 'sourcesofauthority'),  # Can delete sources of authority
-        ('view_sourcesofauthority', 'agents', 'sourcesofauthority'),  # Can view sources of authority
-        ('add_topography', 'agents', 'topography'),  # Can add topography
-        ('change_topography', 'agents', 'topography'),  # Can change topography
-        ('delete_topography', 'agents', 'topography'),  # Can delete topography
-        ('view_topography', 'agents', 'topography'),  # Can view topography
-        ('add_informationpackage', 'ip', 'informationpackage'),  # Can add information package
-        ('delete_informationpackage', 'ip', 'informationpackage'),  # Can delete information package
-        ('view_informationpackage', 'ip', 'informationpackage'),  # Can view information package
-        ('change_informationpackage', 'ip', 'informationpackage'),  # Can change information package
-        ('change_organization', 'ip', 'informationpackage'),  # Can change organization for IP
-        ('transfer_sip', 'ip', 'informationpackage'),  # Can transfer SIP
-        ('change_sa', 'ip', 'informationpackage'),  # Can change SA connected to IP
-        ('lock_sa', 'ip', 'informationpackage'),  # Can lock SA to IP
-        ('receive', 'ip', 'informationpackage'),  # Can receive IP
-        ('preserve', 'ip', 'informationpackage'),  # Can preserve IP
-        ('prepare_ip', 'ip', 'informationpackage'),  # Can prepare IP "backend"
-        ('prepare_dip', 'ip', 'informationpackage'),  # Can prepare DIP
-        ('preserve_dip', 'ip', 'informationpackage'),  # Can preserve DIP
-        ('get_from_storage', 'ip', 'informationpackage'),  # Can get extracted IP from storage
-        ('get_tar_from_storage', 'ip', 'informationpackage'),  # Can get packaged IP from storage
-        ('get_from_storage_as_new', 'ip', 'informationpackage'),  # Can get IP "as new" from storage
-        ('create_as_new', 'ip', 'informationpackage'),  # Can create IP as new generation
-        ('view_accessaid', 'access', 'accessaid'),  # Can view accessAid
-        ('add_accessaid', 'access', 'accessaid'),  # Can add accessAid
-        ('change_accessaid', 'access', 'accessaid'),  # Can change accessAid
-        ('delete_accessaid', 'access', 'accessaid'),  # Can delete accessAid
-        ('view_accessaidtype', 'access', 'accessaidtype'),  # Can view accessAidType
-        ('add_accessaidtype', 'access', 'accessaidtype'),  # Can add accessAidType
-        ('change_accessaidtype', 'access', 'accessaidtype'),  # Can change accessAidType
-        ('delete_accessaidtype', 'access', 'accessaidtype'),  # Can delete accessAidType
-        ('add_to_ingest_workarea', 'ip', 'informationpackage'),  # Can add IP to ingest workarea
-        ('add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'),  # Can add IP as tar to ingest workarea
-        ('add_to_ingest_workarea_as_new', 'ip', 'informationpackage'),  # Can add IP as new generation to ingest workarea  # noqa isort:skip
-        ('diff-check', 'ip', 'informationpackage'),  # Can diff-check IP
-        ('query', 'ip', 'informationpackage'),  # Can query IP
-        ('delete_first_generation', 'ip', 'informationpackage'),  # Can delete first generation of IP
-        ('delete_last_generation', 'ip', 'informationpackage'),  # Can delete last generation of IP
-        ('delete_archived', 'ip', 'informationpackage'),  # Can delete archived IP
-        ('see_all_in_workspaces', 'ip', 'informationpackage'),  # Can see all IPs workspaces
-        ('see_other_user_ip_files', 'ip', 'informationpackage'),  # Can see files in other users IPs
-        ('add_workarea', 'ip', 'workarea'),  # Can add workarea
-        ('change_workarea', 'ip', 'workarea'),  # Can change workarea
-        ('delete_workarea', 'ip', 'workarea'),  # Can delete workarea
-        ('view_workarea', 'ip', 'workarea'),  # Can view workarea
-        ('move_from_ingest_workarea', 'ip', 'workarea'),  # Can move IP from ingest workarea
-        ('move_from_access_workarea', 'ip', 'workarea'),  # Can move IP from access workarea
-        ('preserve_from_ingest_workarea', 'ip', 'workarea'),  # Can preserve IP from ingest workarea
-        ('preserve_from_access_workarea', 'ip', 'workarea'),  # Can preserve IP from access workarea
-        ('add_order', 'ip', 'order'),  # Can add order
-        ('change_order', 'ip', 'order'),  # Can change order
-        ('delete_order', 'ip', 'order'),  # Can delete order
-        ('view_order', 'ip', 'order'),  # Can view order
-        ('prepare_order', 'ip', 'order'),  # Can prepare order
-        ('add_eventip', 'ip', 'eventip'),  # Can add Events related to IP
-        ('add_ordertype', 'ip', 'ordertype'),  # Can add order type
-        ('change_ordertype', 'ip', 'ordertype'),  # Can change order type
-        ('delete_ordertype', 'ip', 'ordertype'),  # Can delete order type
-        ('view_ordertype', 'ip', 'ordertype'),  # Can view order type
-        ('add_submissionagreement', 'profiles', 'submissionagreement'),  # Can add submission agreement
-        ('change_submissionagreement', 'profiles', 'submissionagreement'),  # Can change submission agreement
-        ('delete_submissionagreement', 'profiles', 'submissionagreement'),  # Can delete submission agreement
-        ('view_submissionagreement', 'profiles', 'submissionagreement'),  # Can view submission agreement
-        ('create_new_sa_generation', 'profiles', 'submissionagreement'),  # Can create new generations of SA
-        ('export_sa', 'profiles', 'submissionagreement'),  # Can export SA
-        ('add_profile', 'profiles', 'profile'),  # Can add profile
-        ('change_profile', 'profiles', 'profile'),  # Can change profile
-        ('view_profile', 'profiles', 'profile'),  # Can view profile
-        ('change_profileip', 'profiles', 'profileip'),  # Can change profile ip
-        ('view_profileip', 'profiles', 'profileip'),  # Can view profile ip
-        ('add_profileipdata', 'profiles', 'profileipdata'),  # Can add profile ip data
-        ('change_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can change submission agreement ip data  # noqa isort:skip
-        ('delete_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can delete submission agreement ip data  # noqa isort:skip
-        ('view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'),  # Can view submission agreement ip data  # noqa isort:skip
-        ('add_extensionpackage', 'ProfileMaker', 'extensionpackage'),  # Can add extension package
-        ('add_appraisaljob', 'maintenance', 'appraisaljob'),  # Can add appraisal job
-        ('change_appraisaljob', 'maintenance', 'appraisaljob'),  # Can change appraisal job
-        ('delete_appraisaljob', 'maintenance', 'appraisaljob'),  # Can delete appraisal job
-        ('view_appraisaljob', 'maintenance', 'appraisaljob'),  # Can view appraisal job
-        ('run_appraisaljob', 'maintenance', 'appraisaljob'),  # Can run appraisal job
-        ('add_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can add appraisal job entry
-        ('change_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can change appraisal job entry
-        ('delete_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can delete appraisal job entry
-        ('view_appraisaljobentry', 'maintenance', 'appraisaljobentry'),  # Can view appraisal job entry
-        ('add_conversionjob', 'maintenance', 'conversionjob'),  # Can add conversion job
-        ('change_conversionjob', 'maintenance', 'conversionjob'),  # Can change conversion job
-        ('delete_conversionjob', 'maintenance', 'conversionjob'),  # Can delete conversion job
-        ('view_conversionjob', 'maintenance', 'conversionjob'),  # Can view conversion job
-        ('run_conversionjob', 'maintenance', 'conversionjob'),  # Can run conversion job
-        ('add_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can add conversion job entry
-        ('change_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can change conversion job entry
-        ('delete_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can delete conversion job entry
-        ('view_conversionjobentry', 'maintenance', 'conversionjobentry'),  # Can view conversion job entry
-        ('add_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can add appraisal template
-        ('change_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can change appraisal template
-        ('delete_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can delete appraisal template
-        ('view_appraisaltemplate', 'maintenance', 'appraisaltemplate'),  # Can view appraisal template
-        ('add_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can add conversion template
-        ('change_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can change conversion template
-        ('delete_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can delete conversion template
-        ('view_conversiontemplate', 'maintenance', 'conversiontemplate'),  # Can view conversion template
-        ('add_processstep', 'WorkflowEngine', 'processstep'),  # Can add process step for Storage migration
-        ('storage_migration', 'storage', 'storageobject'),  # Storage migration
-        ('storage_maintenance', 'storage', 'storageobject'),  # Storage maintenance
-        ('storage_management', 'storage', 'storageobject'),  # Storage management
-        ('add_tag', 'tags', 'tag'),  # Can add tag
-        ('change_tag', 'tags', 'tag'),  # Can change tag
-        ('delete_tag', 'tags', 'tag'),  # Can delete tag
-        ('view_tag', 'tags', 'tag'),  # Can view tag
-        ('search', 'tags', 'tag'),  # Can search
-        ('create_archive', 'tags', 'tag'),  # Can create new archives
-        ('change_archive', 'tags', 'tag'),  # Can change archives
-        ('change_organization', 'tags', 'tag'),  # Can change organization for archives
-        ('delete_archive', 'tags', 'tag'),  # Can delete archives
-        ('change_tag_location', 'tags', 'tag'),  # Can change tag location
-        ('security_level_0', 'tags', 'tag'),  # Can see security level 0
-        ('security_level_exists_0', 'tags', 'tag'),  # Can see security level 0 exists
-        ('security_level_1', 'tags', 'tag'),  # Can see security level 1
-        ('security_level_exists_1', 'tags', 'tag'),  # Can see security level 1 exists
-        ('security_level_2', 'tags', 'tag'),  # Can see security level 2
-        ('security_level_exists_2', 'tags', 'tag'),  # Can see security level 2 exists
-        ('security_level_3', 'tags', 'tag'),  # Can see security level 3
-        ('security_level_exists_3', 'tags', 'tag'),  # Can see security level 3 exists
-        ('security_level_4', 'tags', 'tag'),  # Can see security level 4
-        ('security_level_exists_4', 'tags', 'tag'),  # Can see security level 4 exists
-        ('security_level_5', 'tags', 'tag'),  # Can see security level 5
-        ('security_level_exists_5', 'tags', 'tag'),  # Can see security level 5 exists
-        ('add_structure', 'tags', 'structure'),  # Can add structure
-        ('change_structure', 'tags', 'structure'),  # Can change structure
-        ('delete_structure', 'tags', 'structure'),  # Can delete structure
-        ('view_structure', 'tags', 'structure'),  # Can view structure
-        ('publish_structure', 'tags', 'structure'),  # Can publish structures
-        ('unpublish_structure', 'tags', 'structure'),  # Can unpublish structures
-        ('create_new_structure_version', 'tags', 'structure'),  # Can create new structure versions
-        ('add_tagstructure', 'tags', 'tagstructure'),  # Can add tag structure
-        ('change_tagstructure', 'tags', 'tagstructure'),  # Can change tag structure
-        ('delete_tagstructure', 'tags', 'tagstructure'),  # Can delete tag structure
-        ('view_tagstructure', 'tags', 'tagstructure'),  # Can view tag structure
-        ('add_tagversion', 'tags', 'tagversion'),  # Can add tag version
-        ('change_tagversion', 'tags', 'tagversion'),  # Can change tag version
-        ('delete_tagversion', 'tags', 'tagversion'),  # Can delete tag version
-        ('view_tagversion', 'tags', 'tagversion'),  # Can view tag version
-        ('add_structureunit', 'tags', 'structureunit'),  # Can add structure unit
-        ('change_structureunit', 'tags', 'structureunit'),  # Can change structure unit
-        ('delete_structureunit', 'tags', 'structureunit'),  # Can delete structure unit
-        ('view_structureunit', 'tags', 'structureunit'),  # Can view structure unit
-        ('add_structureunit_instance', 'tags', 'structureunit'),  # Can add structure unit instances
-        ('change_structureunit_instance', 'tags', 'structureunit'),  # Can change instances of structure units
-        ('delete_structureunit_instance', 'tags', 'structureunit'),  # Can delete instances of structure units
-        ('move_structureunit_instance', 'tags', 'structureunit'),  # Can move instances of structure units
-        ('add_mediumtype', 'tags', 'mediumtype'),  # Can add medium type
-        ('change_mediumtype', 'tags', 'mediumtype'),  # Can change medium type
-        ('delete_mediumtype', 'tags', 'mediumtype'),  # Can delete medium type
-        ('view_mediumtype', 'tags', 'mediumtype'),  # Can view medium type
-        ('add_nodeidentifier', 'tags', 'nodeidentifier'),  # Can add node identifier
-        ('change_nodeidentifier', 'tags', 'nodeidentifier'),  # Can change node identifier
-        ('delete_nodeidentifier', 'tags', 'nodeidentifier'),  # Can delete node identifier
-        ('view_nodeidentifier', 'tags', 'nodeidentifier'),  # Can view node identifier
-        ('add_nodeidentifiertype', 'tags', 'nodeidentifiertype'),  # Can add node identifier type
-        ('change_nodeidentifiertype', 'tags', 'nodeidentifiertype'),  # Can change node identifier type
-        ('delete_nodeidentifiertype', 'tags', 'nodeidentifiertype'),  # Can delete node identifier type
-        ('view_nodeidentifiertype', 'tags', 'nodeidentifiertype'),  # Can view node identifier type
-        ('add_nodenote', 'tags', 'nodenote'),  # Can add node note
-        ('change_nodenote', 'tags', 'nodenote'),  # Can change node note
-        ('delete_nodenote', 'tags', 'nodenote'),  # Can delete node note
-        ('view_nodenote', 'tags', 'nodenote'),  # Can view node note
-        ('add_nodenotetype', 'tags', 'nodenotetype'),  # Can add node note type
-        ('change_nodenotetype', 'tags', 'nodenotetype'),  # Can change node note type
-        ('delete_nodenotetype', 'tags', 'nodenotetype'),  # Can delete node note type
-        ('view_nodenotetype', 'tags', 'nodenotetype'),  # Can view node note type
-        ('add_noderelationtype', 'tags', 'noderelationtype'),  # Can add node relation type
-        ('change_noderelationtype', 'tags', 'noderelationtype'),  # Can change node relation type
-        ('delete_noderelationtype', 'tags', 'noderelationtype'),  # Can delete node relation type
-        ('view_noderelationtype', 'tags', 'noderelationtype'),  # Can view node relation type
-        ('add_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can add rule convention type
-        ('change_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can change rule convention type
-        ('delete_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can delete rule convention type
-        ('view_ruleconventiontype', 'tags', 'ruleconventiontype'),  # Can view rule convention type
-        ('add_structuretype', 'tags', 'structuretype'),  # Can add structure type
-        ('change_structuretype', 'tags', 'structuretype'),  # Can change structure type
-        ('delete_structuretype', 'tags', 'structuretype'),  # Can delete structure type
-        ('view_structuretype', 'tags', 'structuretype'),  # Can view structure type
-        ('add_structureunitrelation', 'tags', 'structureunitrelation'),  # Can add structure unit relation
-        ('change_structureunitrelation', 'tags', 'structureunitrelation'),  # Can change structure unit relation
-        ('delete_structureunitrelation', 'tags', 'structureunitrelation'),  # Can delete structure unit relation
-        ('view_structureunitrelation', 'tags', 'structureunitrelation'),  # Can view structure unit relation
-        ('add_structureunittype', 'tags', 'structureunittype'),  # Can add structure unit type
-        ('change_structureunittype', 'tags', 'structureunittype'),  # Can change structure unit type
-        ('delete_structureunittype', 'tags', 'structureunittype'),  # Can delete structure unit type
-        ('view_structureunittype', 'tags', 'structureunittype'),  # Can view structure unit type
-        ('add_tagversionrelation', 'tags', 'tagversionrelation'),  # Can add tag version relation
-        ('change_tagversionrelation', 'tags', 'tagversionrelation'),  # Can change tag version relation
-        ('delete_tagversionrelation', 'tags', 'tagversionrelation'),  # Can delete tag version relation
-        ('view_tagversionrelation', 'tags', 'tagversionrelation'),  # Can view tag version relation
-        ('add_search', 'tags', 'search'),  # Can add search
-        ('change_search', 'tags', 'search'),  # Can change search
-        ('delete_search', 'tags', 'search'),  # Can delete search
-        ('view_search', 'tags', 'search'),  # Can view search
-        ('add_tagversiontype', 'tags', 'tagversiontype'),  # Can add node type
-        ('change_tagversiontype', 'tags', 'tagversiontype'),  # Can change node type
-        ('delete_tagversiontype', 'tags', 'tagversiontype'),  # Can delete node type
-        ('view_tagversiontype', 'tags', 'tagversiontype'),  # Can view node type
-        ('add_location', 'tags', 'location'),  # Can add location
-        ('change_location', 'tags', 'location'),  # Can change location
-        ('delete_location', 'tags', 'location'),  # Can delete location
-        ('view_location', 'tags', 'location'),  # Can view location
-        ('add_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can add location function type
-        ('change_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can change location function type
-        ('delete_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can delete location function type
-        ('view_locationfunctiontype', 'tags', 'locationfunctiontype'),  # Can view location function type
-        ('add_locationleveltype', 'tags', 'locationleveltype'),  # Can add location level type
-        ('change_locationleveltype', 'tags', 'locationleveltype'),  # Can change location level type
-        ('delete_locationleveltype', 'tags', 'locationleveltype'),  # Can delete location level type
-        ('view_locationleveltype', 'tags', 'locationleveltype'),  # Can view location level type
-        ('add_metrictype', 'tags', 'metrictype'),  # Can add metric type
-        ('change_metrictype', 'tags', 'metrictype'),  # Can change metric type
-        ('delete_metrictype', 'tags', 'metrictype'),  # Can delete metric type
-        ('view_metrictype', 'tags', 'metrictype'),  # Can view metric type
-        ('add_delivery', 'tags', 'delivery'),  # Can add delivery
-        ('change_delivery', 'tags', 'delivery'),  # Can change delivery
-        ('delete_delivery', 'tags', 'delivery'),  # Can delete delivery
-        ('view_delivery', 'tags', 'delivery'),  # Can view delivery
-        ('add_deliverytype', 'tags', 'deliverytype'),  # Can add delivery type
-        ('change_deliverytype', 'tags', 'deliverytype'),  # Can change delivery type
-        ('delete_deliverytype', 'tags', 'deliverytype'),  # Can delete delivery type
-        ('view_deliverytype', 'tags', 'deliverytype'),  # Can view delivery type
-        ('add_transfer', 'tags', 'transfer'),  # Can add transfer
-        ('change_transfer', 'tags', 'transfer'),  # Can change transfer
-        ('delete_transfer', 'tags', 'transfer'),  # Can delete transfer
-        ('view_transfer', 'tags', 'transfer'),  # Can view transfer
-        ('add_structurerelationtype', 'tags', 'structurerelationtype'),  # Can add structure relation type
-        ('change_structurerelationtype', 'tags', 'structurerelationtype'),  # Can change structure relation type
-        ('delete_structurerelationtype', 'tags', 'structurerelationtype'),  # Can delete structure relation type
-        ('view_structurerelationtype', 'tags', 'structurerelationtype'),  # Can view structure relation type
-        ('add_structurerelation', 'tags', 'structurerelation'),  # Can add structure relation
-        ('change_structurerelation', 'tags', 'structurerelation'),  # Can change structure relation
-        ('delete_structurerelation', 'tags', 'structurerelation'),  # Can delete structure relation
-        ('view_structurerelation', 'tags', 'structurerelation'),  # Can view structure relation
-    ]
-    sync_role_permissions(role_administrator, permissions_administrator, dry_run=dry_run, remove_extra=remove_extra)
-
-    try:
-        role_system_administrator = GroupMemberRole.objects.get(
-            Q(label='System Administrator') | Q(label='sysadmin'))
-        click.secho("-> role 'System Administrator' or 'sysadmin' already exist", fg='red')
-    except GroupMemberRole.MultipleObjectsReturned:
-        click.secho("-> multiple roles exists for 'System Administrator' or 'sysadmin' already exist", fg='red')
-    except GroupMemberRole.DoesNotExist:
-        click.echo("-> installing role 'System Administrator'")
-        role_system_administrator, _ = GroupMemberRole.objects.get_or_create(label='System Administrator')
-
-    permissions_system_administrator = [
-        ('add_emailaddress', 'account', 'emailaddress'),  # Can add email address
-        ('change_emailaddress', 'account', 'emailaddress'),  # Can change email address
-        ('delete_emailaddress', 'account', 'emailaddress'),  # Can delete email address
-        ('view_emailaddress', 'account', 'emailaddress'),  # Can view email address
-        ('add_emailconfirmation', 'account', 'emailconfirmation'),  # Can add email confirmation
-        ('change_emailconfirmation', 'account', 'emailconfirmation'),  # Can change email confirmation
-        ('delete_emailconfirmation', 'account', 'emailconfirmation'),  # Can delete email confirmation
-        ('view_emailconfirmation', 'account', 'emailconfirmation'),  # Can view email confirmation
-        ('add_logentry', 'admin', 'logentry'),  # Can add log entry
-        ('change_logentry', 'admin', 'logentry'),  # Can change log entry
-        ('delete_logentry', 'admin', 'logentry'),  # Can delete log entry
-        ('view_logentry', 'admin', 'logentry'),  # Can view log entry
-        ('add_permission', 'auth', 'permission'),  # Can add permission
-        ('change_permission', 'auth', 'permission'),  # Can change permission
-        ('delete_permission', 'auth', 'permission'),  # Can delete permission
-        ('view_permission', 'auth', 'permission'),  # Can view permission
-        ('add_group', 'auth', 'group'),  # Can add group
-        ('change_group', 'auth', 'group'),  # Can change group
-        ('delete_group', 'auth', 'group'),  # Can delete group
-        ('view_group', 'auth', 'group'),  # Can view group
-        ('add_user', 'auth', 'user'),  # Can add user
-        ('change_user', 'auth', 'user'),  # Can change user
-        ('delete_user', 'auth', 'user'),  # Can delete user
-        ('view_user', 'auth', 'user'),  # Can view user
-        ('add_grouptype', 'groups_manager', 'grouptype'),  # Can add group type
-        ('change_grouptype', 'groups_manager', 'grouptype'),  # Can change group type
-        ('delete_grouptype', 'groups_manager', 'grouptype'),  # Can delete group type
-        ('add_groupmemberrole', 'essauth', 'groupmemberrole'),  # Can add role
-        ('change_groupmemberrole', 'essauth', 'groupmemberrole'),  # Can change role
-        ('delete_groupmemberrole', 'essauth', 'groupmemberrole'),  # Can delete role
-        ('assign_groupmemberrole', 'essauth', 'groupmemberrole'),  # Can assign roles
-        ('add_eventtype', 'configuration', 'eventtype'),  # Can add Event Type
-        ('change_eventtype', 'configuration', 'eventtype'),  # Can change Event Type
-        ('delete_eventtype', 'configuration', 'eventtype'),  # Can delete Event Type
-        ('add_parameter', 'configuration', 'parameter'),  # Can add parameter
-        ('change_parameter', 'configuration', 'parameter'),  # Can change parameter
-        ('delete_parameter', 'configuration', 'parameter'),  # Can delete parameter
-        ('add_path', 'configuration', 'path'),  # Can add path
-        ('change_path', 'configuration', 'path'),  # Can change path
-        ('delete_path', 'configuration', 'path'),  # Can delete path
-        ('add_storagepolicy', 'configuration', 'storagepolicy'),  # Can add storage policy
-        ('change_storagepolicy', 'configuration', 'storagepolicy'),  # Can change storage policy
-        ('delete_storagepolicy', 'configuration', 'storagepolicy'),  # Can delete storage policy
-        ('add_submissionagreement', 'profiles', 'submissionagreement'),  # Can add submission agreement
-        ('change_submissionagreement', 'profiles', 'submissionagreement'),  # Can change submission agreement
-        ('delete_submissionagreement', 'profiles', 'submissionagreement'),  # Can delete submission agreement
-        ('add_profile', 'profiles', 'profile'),  # Can add profile
-        ('change_profile', 'profiles', 'profile'),  # Can change profile
-        ('delete_profile', 'profiles', 'profile'),  # Can delete profile
-        ('change_ioqueue', 'storage', 'ioqueue'),  # Can change io queue
-        ('delete_ioqueue', 'storage', 'ioqueue'),  # Can delete io queue
-        ('add_storagemethod', 'storage', 'storagemethod'),  # Can add storage method
-        ('change_storagemethod', 'storage', 'storagemethod'),  # Can change storage method
-        ('delete_storagemethod', 'storage', 'storagemethod'),  # Can delete storage method
-        ('add_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'),  # Can add Storage Method/Target Relation  # noqa isort:skip
-        ('change_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'),  # Can change Storage Method/Target Relation  # noqa isort:skip
-        ('delete_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'),  # Can delete Storage Method/Target Relation  # noqa isort:skip
-        ('add_processstep', 'WorkflowEngine', 'processstep'),  # Can add process step for Storage migration
-        ('storage_migration', 'storage', 'storageobject'),  # Storage migration
-        ('storage_maintenance', 'storage', 'storageobject'),  # Storage maintenance
-        ('storage_management', 'storage', 'storageobject'),  # Storage management
-        ('add_storagetarget', 'storage', 'storagetarget'),  # Can add Storage Target
-        ('change_storagetarget', 'storage', 'storagetarget'),  # Can change Storage Target
-        ('delete_storagetarget', 'storage', 'storagetarget'),  # Can delete Storage Target
-        ('add_robot', 'storage', 'robot'),  # Can add robot
-        ('change_robot', 'storage', 'robot'),  # Can change robot
-        ('delete_robot', 'storage', 'robot'),  # Can delete robot
-        ('change_robotqueue', 'storage', 'robotqueue'),  # Can change robot queue
-        ('delete_robotqueue', 'storage', 'robotqueue'),  # Can delete robot queue
-        ('add_tapedrive', 'storage', 'tapedrive'),  # Can add tape drive
-        ('change_tapedrive', 'storage', 'tapedrive'),  # Can change tape drive
-        ('delete_tapedrive', 'storage', 'tapedrive'),  # Can delete tape drive
-    ]
-    sync_role_permissions(role_system_administrator, permissions_system_administrator,
-                          dry_run=dry_run, remove_extra=remove_extra)
-
-    return (role_user, role_producer, role_submitter, role_delivery_manager, role_archivist,
-            role_administrator, role_system_administrator)
+    return created_roles
 
 
 def sync_parameters(parameter_definitions, dry_run=False, update_existing=False, remove_extra=False):
@@ -1283,7 +658,7 @@ def sync_parameters(parameter_definitions, dry_run=False, update_existing=False,
     click.echo(f"  Removed:   {removed}")
 
     if dry_run:
-        click.secho("\nDry-run complete — no changes were made.", fg="blue")
+        click.secho("\nDry-run complete - no changes were made.", fg="blue")
     else:
         click.secho("\nParameter sync complete.", fg="green")
 
@@ -1315,138 +690,228 @@ def installDefaultSite():
     Site.objects.get_or_create(name='ESSArch')
 
 
-def installDefaultUsers():
-    click.echo("Installing users and group...")
+def sync_membership_roles(group_member, desired_roles, dry_run=False, remove_extra=False):
+    current_roles = set(group_member.roles.all())
 
-    organization, _ = GroupType.objects.get_or_create(label="organization")
-    default_org, _ = Group.objects.get_or_create(name='Default', group_type=organization)
+    to_add = desired_roles - current_roles
+    to_remove = current_roles - desired_roles
 
-    (role_user, role_producer, role_submitter, role_delivery_manager, role_archivist,
-     role_administrator, role_system_administrator) = installDefaultRoles()
+    for role in to_add:
+        click.secho(f"      [+] Role add: {role.label} in {group_member.group.name}", fg="green")
 
-    #####################################
-    # Users
-    #
+    for role in to_remove:
+        if remove_extra:
+            click.secho(f"      [-] Role remove: {role.label} in {group_member.group.name}", fg="red")
+        else:
+            click.secho(f"      [!] Extra Role: {role.label} in {group_member.group.name}", fg="yellow")
 
-    # click.echo(role_user)
+    if not dry_run:
+        if to_add:
+            group_member.roles.add(*to_add)
 
-    try:
-        User.objects.get(username='user')
-        click.secho("-> user 'user' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'user'")
-        user_user, created = User.objects.get_or_create(
-            first_name='User', last_name='Lastname',
-            username='user', email='user@essolutions.se'
-        )
-        if created:
-            user_user.set_password('user')
-            user_user.save()
-            default_org.add_member(user_user.essauth_member, roles=[role_user])
+        if remove_extra and to_remove:
+            group_member.roles.remove(*to_remove)
 
-    try:
-        User.objects.get(username='producer')
-        click.secho("-> user 'producer' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'producer'")
-        user_producer, created = User.objects.get_or_create(
-            first_name='Producer', last_name='Lastname',
-            username='producer', email='producer@essolutions.se'
-        )
-        if created:
-            user_producer.set_password('producer')
-            user_producer.save()
-            default_org.add_member(user_producer.essauth_member, roles=[role_producer])
 
-    try:
-        User.objects.get(username='submitter')
-        click.secho("-> user 'submitter' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'submitter'")
-        user_submitter, created = User.objects.get_or_create(
-            first_name='Submitter', last_name='Lastname',
-            username='submitter', email='submitter@essolutions.se'
-        )
-        if created:
-            user_submitter.set_password('submitter')
-            user_submitter.save()
-            default_org.add_member(user_submitter.essauth_member, roles=[role_submitter])
+def sync_user_fields(user, user_data, dry_run=False, update_passwords=False, is_new_user=False):
+    changes = []
 
-    try:
-        User.objects.get(username='deliverymgr')
-        click.secho("-> user 'deliverymgr' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'deliverymgr'")
-        user_deliverymgr, created = User.objects.get_or_create(
-            first_name='Delivery Manager', last_name='Lastname',
-            username='deliverymgr', email='deliverymgr@essolutions.se'
-        )
-        if created:
-            user_deliverymgr.set_password('deliverymgr')
-            user_deliverymgr.save()
-            default_org.add_member(user_deliverymgr.essauth_member, roles=[role_delivery_manager])
+    field_mapping = {
+        "first_name": user_data.get("first_name", ""),
+        "last_name": user_data.get("last_name", ""),
+        "email": user_data.get("email", ""),
+        "is_staff": user_data.get("is_staff", False),
+        "is_superuser": user_data.get("is_superuser", False),
+    }
 
-    try:
-        User.objects.get(username='archivist')
-        click.secho("-> user 'archivist' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'archivist'")
-        user_archivist, created = User.objects.get_or_create(
-            first_name='Archivist', last_name='Lastname',
-            username='archivist', email='archivist@essolutions.se'
-        )
-        if created:
-            user_archivist.set_password('archivist')
-            user_archivist.save()
-            default_org.add_member(user_archivist.essauth_member, roles=[role_archivist])
+    for field, new_value in field_mapping.items():
+        old_value = getattr(user, field)
+        if old_value != new_value:
+            changes.append((field, old_value, new_value))
+            setattr(user, field, new_value)
 
-    try:
-        User.objects.get(username='admin')
-        click.secho("-> user 'admin' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'admin'")
-        user_admin, created = User.objects.get_or_create(
-            first_name='Admin', last_name='Lastname',
-            username='admin', email='admin@essolutions.se',
-        )
-        if created:
-            user_admin.set_password('admin')
-            user_admin.is_staff = True
-            user_admin.save()
-            default_org.add_member(user_admin.essauth_member, roles=[role_administrator])
+    # Password handling
+    if "password" in user_data:
+        if is_new_user or update_passwords:
+            if not user.check_password(user_data["password"]):
+                user.set_password(user_data["password"])
+                changes.append(("password", "***", "***"))
 
-    try:
-        User.objects.get(username='sysadmin')
-        click.secho("-> user 'sysadmin' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'sysadmin'")
-        user_sysadmin, created = User.objects.get_or_create(
-            first_name='Sysadmin', last_name='Lastname',
-            username='sysadmin', email='sysadmin@essolutions.se',
-        )
-        if created:
-            user_sysadmin.set_password('sysadmin')
-            user_sysadmin.is_staff = True
-            user_sysadmin.save()
-            default_org.add_member(user_sysadmin.essauth_member, roles=[role_system_administrator])
+    # Output changes
+    for field, old, new in changes:
+        if is_new_user:
+            click.secho(
+                f"   [+] Set {field}: {new}",
+                fg="green"
+            )
+        else:
+            click.secho(
+                f"   [~] Update {field}: {old} → {new}",
+                fg="yellow"
+            )
 
-    try:
-        User.objects.get(username='superuser')
-        click.secho("-> user 'superuser' already exist", fg='red')
-    except User.DoesNotExist:
-        click.echo("-> installing user 'superuser'")
-        user_superuser, created = User.objects.get_or_create(
-            first_name='Superuser', last_name='Lastname',
-            username='superuser', email='superuser@essolutions.se',
-        )
-        if created:
-            user_superuser.set_password('superuser')
-            user_superuser.is_staff = True
-            user_superuser.is_superuser = True
-            user_superuser.save()
-            default_org.add_member(user_superuser.essauth_member)
+    if changes and not dry_run:
+        user.save()
 
-    return 0
+    return changes
+
+
+def sync_user(
+    user_data,
+    role_lookup,
+    organization_type,
+    org_cache,
+    dry_run=False,
+    remove_extra=False,
+    update_existing=False,
+    update_passwords=False,
+):
+    username = user_data["username"]
+
+    user, created = User.objects.get_or_create(username=username)
+
+    if created:
+        click.secho(f"-> Creating user '{username}'", fg="green")
+    else:
+        click.secho(f"-> User '{username}' already exists", fg="yellow")
+
+    # --------------------------------
+    # Update user fields
+    # --------------------------------
+    if created or update_existing:
+        sync_user_fields(user, user_data, dry_run=dry_run, update_passwords=update_passwords,
+                         is_new_user=created)
+
+    # Ensure Member exists
+    member, _ = Member.objects.get_or_create(django_user=user)
+
+    # --------------------------------
+    # Desired orgs from JSON
+    # --------------------------------
+    desired_orgs = {
+        org["name"]: org.get("roles", [])
+        for org in user_data.get("organizations", [])
+    }
+
+    # Current memberships
+    current_memberships = {
+        gm.group.name: gm
+        for gm in member.group_membership.select_related("group").all()
+        if gm.group.group_type and
+        gm.group.group_type.codename == "organization"
+    }
+
+    # --------------------------------
+    # Add or update memberships
+    # --------------------------------
+    for org_name, role_names in desired_orgs.items():
+
+        if org_name not in org_cache:
+            org, _ = Group.objects.get_or_create(
+                name=org_name,
+                group_type=organization_type
+            )
+            org_cache[org_name] = org
+
+        organization = org_cache[org_name]
+
+        desired_roles = {
+            role_lookup[r]
+            for r in role_names
+            if r in role_lookup
+        }
+
+        if org_name not in current_memberships:
+            click.secho(
+                f"   [+] Add membership '{org_name}' roles={role_names}",
+                fg="green"
+            )
+
+            if not dry_run:
+                gm = organization.add_member(member, roles=list(desired_roles))
+        else:
+            gm = current_memberships[org_name]
+            sync_membership_roles(
+                gm,
+                desired_roles,
+                dry_run=dry_run,
+                remove_extra=remove_extra,
+            )
+
+    # --------------------------------
+    # Remove extra memberships
+    # --------------------------------
+    for org_name, gm in current_memberships.items():
+        if org_name not in desired_orgs:
+            if remove_extra:
+                click.secho(f"   [-] Remove membership '{org_name}'", fg="red")
+            else:
+                click.secho(f"   [!] Extra membership '{org_name}'", fg="yellow")
+            if not dry_run and remove_extra:
+                gm.delete()
+
+
+def installUsers(
+    dry_run=False,
+    remove_extra=False,
+    update_existing=False,
+    update_passwords=False,
+    config_file=None,
+    root_dir=None,
+):
+    click.echo("Syncing users from JSON config...")
+
+    if not root_dir:
+        root_dir = Path(__file__).resolve().parent.parent
+
+    if not config_file:
+        config_file = "templates/users.json"
+
+    config_path = Path(root_dir) / config_file
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Users config not found at {config_path}")
+
+    with open(config_path, encoding="utf8") as f:
+        config = json.load(f)
+
+    users_data = config.get("users", [])
+
+    # Collect all role codenames from JSON
+    role_names = {
+        role
+        for user in users_data
+        for org in user.get("organizations", [])
+        for role in org.get("roles", [])
+    }
+
+    # Fetch roles from DB
+    roles = GroupMemberRole.objects.filter(label__in=role_names)
+    role_lookup = {role.label: role for role in roles}
+
+    missing_roles = role_names - set(role_lookup.keys())
+    if missing_roles:
+        raise ValueError(f"Missing roles in database: {missing_roles}")
+
+    organization_type, _ = GroupType.objects.get_or_create(label="organization")
+
+    org_cache = {}
+
+    with transaction.atomic():
+
+        for user_data in users_data:
+            sync_user(
+                user_data,
+                role_lookup,
+                organization_type,
+                org_cache,
+                dry_run=dry_run,
+                remove_extra=remove_extra,
+                update_existing=update_existing,
+                update_passwords=update_passwords,
+            )
+
+    click.secho("\nUser sync complete.", fg="green")
 
 
 def sync_paths(path_definitions, dry_run=False, update_existing=False, remove_extra=False):
@@ -1571,7 +1036,7 @@ def sync_paths(path_definitions, dry_run=False, update_existing=False, remove_ex
     click.echo(f"  Removed:   {removed}")
 
     if dry_run:
-        click.secho("\nDry-run complete — no changes were made.", fg="blue")
+        click.secho("\nDry-run complete - no changes were made.", fg="blue")
     else:
         click.secho("\nPath sync complete.", fg="green")
 
