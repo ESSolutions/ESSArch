@@ -264,6 +264,18 @@ class Structure(models.Model):
         for unit in self.units.prefetch_related('notes', 'identifiers').select_related('parent'):
             unit.create_template_instance(new_structure, old_archive_ts)
 
+        new_structure_reference_code_list = self.units.prefetch_related(
+            'notes', 'identifiers').select_related('parent').values_list('reference_code', flat=True)
+
+        # create old descendants from archive if exists
+        logger = logging.getLogger('essarch.tags')
+        if old_archive_ts is not None:
+            for old_unit in old_archive_ts.structure.units.prefetch_related('notes', 'identifiers').select_related(
+                    'parent').exclude(reference_code__in=new_structure_reference_code_list):
+                logger.debug('Create template instance for old_unit: {} in structure: {}'.format(
+                    old_unit, new_structure))
+                old_unit.create_template_instance(new_structure, old_archive_ts)
+
         return new_structure, archive_tagstructure
 
     def _get_unit_by_ref_cache_key(self, reference_code):
@@ -505,6 +517,9 @@ class StructureUnit(MPTTModel):
         try:
             if old_archive_ts is not None:
                 old_unit = old_archive_ts.structure.units.get(reference_code=self.reference_code)
+                for access_aid in old_unit.access_aids.all():
+                    logger.debug('Add access aid: {} to new_unit: {}'.format(access_aid, new_unit))
+                    access_aid.structure_units.add(new_unit)
                 group = old_unit.structureunitgroupobjects_set.get().group
                 group.add_object(new_unit)
                 logger.debug('Add new_unit: {} to group: {}'.format(new_unit, group))
@@ -724,11 +739,10 @@ other_structure.id: {}'.format(other_structure, other_structure.is_template, oth
         if template_unit is not None:
             template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
         else:
-            # if not StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure
-            #   ).exists():
-            #    self.copy_to_structure(other_structure)
-            # return StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure)
-            template_units = []
+            if not StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure
+                                                ).exists():
+                self.copy_to_structure(other_structure)
+            return StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure)
 
         if other_structure.is_template:
             return template_units
@@ -1398,14 +1412,14 @@ class TagStructure(MPTTModel):
                 old_parent_tag = self.parent.tag
                 new_parent_tag = old_parent_tag.structures.get(structure=new_structure)
             except TagStructure.DoesNotExist:
-                logger.exception('Parent tag of {self} does not exist in new structure {new_structure}')
+                logger.exception(f'Parent tag of {self} does not exist in new structure {new_structure}')
                 raise
 
         if new_unit is None and self.structure_unit is not None:
             try:
                 new_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
             except StructureUnit.DoesNotExist:
-                logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
+                logger.exception(f'Structure unit instance of {self} does not exist in new structure {new_structure}')
                 raise
             except StructureUnit.MultipleObjectsReturned:
                 new_units = self.structure_unit.get_related_in_other_structure(new_structure).all()
