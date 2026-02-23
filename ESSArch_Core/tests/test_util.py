@@ -1,7 +1,6 @@
 import datetime
 import os
 import shutil
-import sys
 import tempfile
 from subprocess import PIPE
 from unittest import mock
@@ -19,7 +18,6 @@ from ESSArch_Core.util import (
     flatten,
     generate_file_response,
     get_files_and_dirs,
-    get_script_directory,
     get_value_from_path,
     getSchemas,
     list_files,
@@ -40,11 +38,8 @@ class ConvertFileTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        if sys.platform == "win32":
-            cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
-        else:
-            cmd = ['unoconv']
-        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
+        cmd = ['unoconvert']
+        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
@@ -58,11 +53,8 @@ class ConvertFileTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        if sys.platform == "win32":
-            cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
-        else:
-            cmd = ['unoconv']
-        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
+        cmd = ['unoconvert']
+        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
@@ -75,11 +67,8 @@ class ConvertFileTests(SimpleTestCase):
 
         self.assertEqual(convert_file("test.docx", "pdf"), 'test.pdf')
 
-        if sys.platform == "win32":
-            cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
-        else:
-            cmd = ['unoconv']
-        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
+        cmd = ['unoconvert']
+        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
 

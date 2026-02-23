@@ -1,4 +1,3 @@
-import base64
 import logging
 import os
 import uuid
@@ -55,9 +54,8 @@ def index_document(tag_version, filepath, index_file_content=True):
     try:
         if index_file_content:
             with open(filepath, 'rb') as f:
-                content = f.read()
-            doc.data = base64.b64encode(content).decode("ascii")
-            doc.save(pipeline='ingest_attachment')
+                doc = File.enrich_with_content(doc, file_obj=f)
+            doc.save()
         else:
             logger.debug('Skip to index file content for {}'.format(filepath))
             doc.save()

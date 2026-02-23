@@ -1,6 +1,6 @@
-import base64
-import os
+import logging
 
+import requests
 from django.conf import settings
 from django.utils import timezone
 from elasticsearch.exceptions import NotFoundError
@@ -340,6 +340,7 @@ class File(Component):
     href = Keyword()  # @href
     size = Long()
     modified = Date()
+    content = Text(analyzer='standard')
     attachment = Object(
         properties={
             'date': Date()
@@ -356,7 +357,7 @@ class File(Component):
         ).filter(elastic_index='document')
 
     @classmethod
-    def from_obj(cls, obj, archive=None, index_file_content=False):
+    def from_obj(cls, obj, archive=None):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
 
         if archive is not None:
@@ -375,34 +376,17 @@ class File(Component):
 
         current_version = getattr(obj.tag, 'current_version', None)
 
-        if index_file_content:
-            # Read file from ip to update indexed file content (field: attachment)
-            if obj.tag.information_package:
-                exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
-
-                if 'formatkey' in obj.custom_fields.keys():
-                    format_registry_key = obj.custom_fields['formatkey']
-                else:
-                    format_registry_key = None
-
-                if format_registry_key not in exclude_file_format_from_indexing_content:
-                    ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
-                    with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
-                        content = f.read()
-                    encoded_content = base64.b64encode(content).decode("ascii")
-                else:
-                    index_file_content = False
-                    attachment = {}
+        # Get already indexed file content from old_doc (field: content or attachment.content)
+        content = None
+        try:
+            old_doc = File.get(id=str(obj.pk), index='document')
+        except NotFoundError:
+            pass
         else:
-            # Get already indexed file content from old_doc (field: attachment)
-            attachment = {}
-            try:
-                old_doc = File.get(id=str(obj.pk), index='document')
-            except NotFoundError:
-                pass
-            else:
-                if old_doc.attachment:
-                    attachment = old_doc.attachment
+            if old_doc.content:
+                content = old_doc.content
+            elif old_doc.attachment and hasattr(old_doc.attachment, 'content'):
+                content = old_doc.attachment.content
 
         doc = File(
             _id=str(obj.pk),
@@ -422,13 +406,31 @@ class File(Component):
             end_date=getattr(current_version, 'end_date', None),
             date_render_format=obj.type.date_render_format,
             security_level=getattr(current_version, 'security_level', None),
+            content=content,
             **obj.custom_fields,
         )
 
-        if index_file_content:
-            doc.data = encoded_content
+        return doc
+
+    @classmethod
+    def enrich_with_content(cls, doc, file_obj):
+        TIKA_URL = getattr(settings, 'TIKA_URL', 'http://localhost:9998/tika')
+        file_obj.seek(0)
+        response = requests.put(
+            TIKA_URL,
+            data=file_obj,
+            headers={"Accept": "text/plain; charset=utf-8"},
+            timeout=600
+        )
+
+        if response.status_code == 200:
+            doc.content = response.content.decode("utf-8")
         else:
-            doc.attachment = attachment
+            logger = logging.getLogger('essarch.search')
+            logger.warning('Failed to extract content for file with id %s using Tika, status code: %s, response: %s',
+                           doc.id, response.status_code, response.text)
+            raise Exception('Failed to extract content for file with id {}, status code: {}, response: {}'.format(
+                doc.id, response.status_code, response.text))
 
         return doc
 

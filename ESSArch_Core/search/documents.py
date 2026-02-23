@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 import elasticsearch_dsl as es
@@ -84,15 +85,32 @@ class DocumentBase(es.Document):
         """
         Creates the document dict for indexing.
         """
-
+        logger = logging.getLogger('essarch.search')
         batch = []
         for obj in objects:
-            if cls.__name__ == 'File' and index_file_content:
-                d_dict = cls.from_obj(obj, index_file_content=True).to_dict(include_meta=True)
-                d_dict['pipeline'] = 'ingest_attachment'
-            else:
-                d_dict = cls.from_obj(obj).to_dict(include_meta=True)
-            batch.append(d_dict)
+            doc = cls.from_obj(obj)
+
+            if cls.__name__ == 'File' and obj.tag.information_package and index_file_content:
+                exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
+                if 'formatkey' in obj.custom_fields.keys():
+                    format_registry_key = obj.custom_fields['formatkey']
+                else:
+                    format_registry_key = None
+                if format_registry_key not in exclude_file_format_from_indexing_content:
+                    ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+                    try:
+                        with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
+                            doc = cls.enrich_with_content(doc, file_obj=f)
+                        logger.debug('Indexed file content for {} with format registry key {} for ip {}'.format(
+                            obj.custom_fields['filename'], format_registry_key, obj.tag.information_package))
+                    except NotImplementedError:
+                        logger.warning('open_file is not implemented for the information package %s, skip to index '
+                                       'file content for %s', obj.tag.information_package, ip_file_path)
+                else:
+                    logger.warning('Skip to index file content for {} with format registry key {} for ip {}'.format(
+                        obj.custom_fields['filename'], format_registry_key, obj.tag.information_package))
+
+            batch.append(doc.to_dict(include_meta=True))
         return batch
 
     @classmethod

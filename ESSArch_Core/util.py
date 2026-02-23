@@ -608,13 +608,17 @@ def get_script_directory():
         return os.path.dirname(path)
 
 
-def convert_file(path, new_format):
+def convert_file(path, new_format='pdf', filter_option='SelectPdfVersion=1', new_path=None):
     logger = logging.getLogger('essarch')
-    if sys.platform == "win32":
-        cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
+    path = Path(path)
+    if new_path:
+        new_path = Path(new_path)
     else:
-        cmd = ['unoconv']
-    cmd.extend(['-f', new_format, '-eSelectPdfVersion=1', path])
+        new_path = path.with_suffix('.' + new_format)
+
+    cmd = ['unoconvert']
+    cmd.extend(['--convert-to', new_format, '--filter-option',
+                filter_option, path.as_posix(), new_path.as_posix()])
     logger.info(''.join(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
@@ -623,9 +627,7 @@ def convert_file(path, new_format):
         msg = '%s, return code: %s' % (err, p.returncode)
         raise ValueError(msg)
 
-    new_path = os.path.splitext(path)[0] + '.' + new_format
-    new_path = normalize_path(new_path)
-    if not os.path.isfile(new_path):
+    if not new_path.exists():
         raise ValueError('No file created')
 
     if out:
@@ -633,8 +635,8 @@ def convert_file(path, new_format):
     else:
         msg = 'return code: %s' % (p.returncode,)
 
-    logger.info('unoconv completed without error: %s' % (msg,))
-    return new_path
+    logger.info('convert completed without error: %s' % (msg,))
+    return new_path.as_posix()
 
 
 def in_directory(path, directory):
