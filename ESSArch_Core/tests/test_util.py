@@ -42,7 +42,7 @@ class ConvertFileTests(SimpleTestCase):
         cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
-    @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
+    @mock.patch('ESSArch_Core.util.Path.exists', return_value=False)
     @mock.patch('ESSArch_Core.util.Popen')
     def test_zero_returncode_with_no_file_created(self, mock_popen, mock_isfile):
         process_mock = mock.Mock()
@@ -57,7 +57,7 @@ class ConvertFileTests(SimpleTestCase):
         cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
-    @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.util.Path.exists', return_value=True)
     @mock.patch('ESSArch_Core.util.Popen')
     def test_zero_returncode_with_file_created(self, mock_popen, mock_isfile):
         process_mock = mock.Mock()

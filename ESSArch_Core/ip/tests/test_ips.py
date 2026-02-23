@@ -3943,7 +3943,10 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         self.url = reverse('informationpackage-files', args=(self.ip.pk,))
         sa.lock_to_information_package(self.ip, self.user)
 
-    def test_get_archived_dir_from_short_term(self):
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
+    def test_get_archived_dir_from_short_term(self, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         self.client.force_authenticate(user=self.user)
 
         short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
@@ -3984,7 +3987,10 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
             ]
         )
 
-    def test_get_archived_file_from_short_term(self):
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
+    def test_get_archived_file_from_short_term(self, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         self.client.force_authenticate(user=self.user)
 
         short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
@@ -4030,7 +4036,10 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         self.assertContains(res, 'hello nested world')
         res.close()
 
-    def test_get_archived_file_from_long_term(self):
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
+    def test_get_archived_file_from_long_term(self, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         self.client.force_authenticate(user=self.user)
 
         long_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
