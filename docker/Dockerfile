@@ -169,7 +169,7 @@ RUN export MOD_WSGI=`python -c "import mod_wsgi as _; print(_.__path__[0])"`; cp
 RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`; cp $ESSARCH/config/wsgi.py ./config/essarch/wsgi.py
 
 # Use python version that match installed libreoffice for unoconv
-RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
+# RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
 
 RUN chown -R arch:root /code
 RUN chmod -R g+rwx /code
@@ -214,7 +214,7 @@ RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,saml2,ldap
 # RUN mkdir -p ./config/essarch
 
 # Use python version that match installed libreoffice for unoconv
-RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
+# RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
 
 RUN chown -R arch:root /code
 USER arch

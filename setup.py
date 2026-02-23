@@ -56,7 +56,7 @@ if __name__ == '__main__':
             "optional": get_requirements('optional'),
             "ldap": [get_optional("django-auth-ldap")],
             "saml2": [get_optional("djangosaml2"), get_optional("pysaml2")],
-            "libreoffice_file_conversion": [get_optional("unoconv")],
+            "libreoffice_file_conversion": [get_optional("unoserver")],
             "ms_office_file_conversion": [get_optional("comtypes")],
             "iis": [get_optional("wfastcgi")],
             "apache": [get_optional("mod-wsgi")],

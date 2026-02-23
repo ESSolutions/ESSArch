@@ -25,6 +25,7 @@ services:
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/wait_for.sh tika 9998
         /code/docker/entrypoint-essarch.sh
     ports:
       - 8080:8080
@@ -36,6 +37,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - tika
     networks:
       - essarch
 
@@ -58,6 +60,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/wait_for.sh tika 9998
         exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
     tty: true
@@ -65,6 +68,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - tika
       - essarch
     networks:
       - essarch
@@ -89,6 +93,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/wait_for.sh tika 9998
         exec /code/docker/entrypoint-celery-beat.sh
     restart: on-failure
     tty: true
@@ -96,6 +101,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - tika
       - essarch
     networks:
       - essarch
@@ -120,6 +126,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/wait_for.sh tika 9998
         daphne ESSArch_Core.config.asgi:application --port 9000 --bind 0.0.0.0 --access-log /ESSArch/log/daphneessarch.log --log-fmt '[%(asctime)s: %(levelname)s] %(message)s'
     ports:
       - 9000:9000
@@ -129,6 +136,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - tika
       - essarch
     networks:
       - essarch
@@ -152,6 +160,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/wait_for.sh tika 9998
         /code/docker/entrypoint-datasette.sh
     ports:
       - 8001:8001
@@ -161,6 +170,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - tika
       - essarch
     profiles:
       - datasette
@@ -209,6 +219,14 @@ services:
     image: 'rabbitmq'
     ports:
       - 5672:5672
+    networks:
+      - essarch
+
+  tika:
+    image: apache/tika:latest
+    container_name: tika
+    ports:
+      - "9998:9998"
     networks:
       - essarch
 
