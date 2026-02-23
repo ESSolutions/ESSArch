@@ -806,8 +806,11 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_delete_packages_with_file_pattern(self, m_validate):
+    def test_delete_packages_with_file_pattern(self, m_validate, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
@@ -895,8 +898,11 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=False)
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_inactivate_packages_with_file_pattern(self, m_validate):
+    def test_inactivate_packages_with_file_pattern(self, m_validate, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
@@ -951,8 +957,11 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_delete_packages_files_using_document_tags(self, m_validate):
+    def test_delete_packages_files_using_document_tags(self, m_validate, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
@@ -1584,9 +1593,13 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         )
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('docker.models.containers.ContainerCollection.run')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_convert_packages_with_valid_specification(self, m_validate, mock_convert):
+    def test_convert_packages_with_valid_specification(self, m_validate, mock_convert, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
+
         def convert_side_effect(img, cmd, *args, volumes, **kwargs):
             rootdir = list(volumes.keys())[0]
             _, src, dst = shlex.split(cmd)

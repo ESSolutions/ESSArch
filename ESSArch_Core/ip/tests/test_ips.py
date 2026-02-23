@@ -1800,8 +1800,11 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
             f.write('application/x-tar tar\n')
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_preserve_aip(self, mock_validate_schema):
+    def test_preserve_aip(self, mock_validate_schema, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         container_storage_method = StorageMethod.objects.create(containers=True)
         container_storage_target = StorageTarget.objects.create(
             name='container', target=tempfile.mkdtemp(dir=self.datadir),
@@ -1879,8 +1882,11 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(os.listdir(tempdir), [])
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_preserve_aip_to_disabled_method(self, _):
+    def test_preserve_aip_to_disabled_method(self, _, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         container_storage_method = StorageMethod.objects.create(containers=True)
         container_storage_target = StorageTarget.objects.create(
             name='container', target=tempfile.mkdtemp(dir=self.datadir),
@@ -1923,8 +1929,11 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         self.assertFalse(ip.archived)
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.tags.documents.requests.put')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    def test_preserve_aip_to_disabled_target(self, _):
+    def test_preserve_aip_to_disabled_target(self, _, mock_requests_put):
+        mock_requests_put.return_value.status_code = 200
+        mock_requests_put.return_value.content = b"mocked tika content"
         container_storage_method = StorageMethod.objects.create(containers=True)
         container_storage_target = StorageTarget.objects.create(
             name='container', target=tempfile.mkdtemp(dir=self.datadir),
