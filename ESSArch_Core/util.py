@@ -611,7 +611,7 @@ def get_script_directory():
 def convert_file(path, new_format='pdf', filter_option='SelectPdfVersion=1', new_path=None):
     logger = logging.getLogger('essarch')
     UNOSERVER_URL = getattr(settings, 'UNOSERVER_URL', 'http://localhost:2003')
-    unoserver_url = urlparse(UNOSERVER_URL)    
+    unoserver_url = urlparse(UNOSERVER_URL)
     path = Path(path)
     if new_path:
         new_path = Path(new_path)
