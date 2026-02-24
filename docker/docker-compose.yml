@@ -11,6 +11,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
       ESSARCH_DAPHNE_URL: http://daphne:9000
     volumes:
@@ -26,6 +28,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         /code/docker/entrypoint-essarch.sh
     ports:
       - 8080:8080
@@ -38,6 +41,7 @@ services:
       - redis
       - elasticsearch
       - tika
+      - unoserver
     networks:
       - essarch
 
@@ -47,6 +51,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
@@ -61,6 +67,7 @@ services:
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
     tty: true
@@ -69,6 +76,7 @@ services:
       - redis
       - elasticsearch
       - tika
+      - unoserver
       - essarch
     networks:
       - essarch
@@ -79,6 +87,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
       ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
     volumes:
@@ -94,6 +104,7 @@ services:
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         exec /code/docker/entrypoint-celery-beat.sh
     restart: on-failure
     tty: true
@@ -102,6 +113,7 @@ services:
       - redis
       - elasticsearch
       - tika
+      - unoserver
       - essarch
     networks:
       - essarch
@@ -112,6 +124,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
@@ -127,6 +141,7 @@ services:
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         daphne ESSArch_Core.config.asgi:application --port 9000 --bind 0.0.0.0 --access-log /ESSArch/log/daphneessarch.log --log-fmt '[%(asctime)s: %(levelname)s] %(message)s'
     ports:
       - 9000:9000
@@ -137,6 +152,7 @@ services:
       - redis
       - elasticsearch
       - tika
+      - unoserver
       - essarch
     networks:
       - essarch
@@ -147,6 +163,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
@@ -161,6 +179,7 @@ services:
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         /code/docker/entrypoint-datasette.sh
     ports:
       - 8001:8001
@@ -171,6 +190,7 @@ services:
       - redis
       - elasticsearch
       - tika
+      - unoserver
       - essarch
     profiles:
       - datasette
@@ -222,6 +242,28 @@ services:
     networks:
       - essarch
 
+  unoserver:
+    image: essolutionsab/essarch
+    environment:
+      HOME: /tmp
+    command:
+      - /usr/bin/python3
+      - -m
+      - unoserver.server
+      - --interface
+      - 0.0.0.0
+      - --port
+      - "2003"
+      - --uno-port
+      - "2002"
+      - --user-installation
+      - /tmp/unoserver-user
+    ports:
+      - 2003:2003
+    restart: on-failure
+    networks:
+      - essarch
+  
   tika:
     image: apache/tika:latest
     container_name: tika

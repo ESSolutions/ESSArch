@@ -8,9 +8,12 @@ essarch install -q
 mkdir -p /ESSArch/config/essarch
 
 echo "Installing profiles"
-python ESSArch_Core/install/install_sa_profiles.py se
-#python ESSArch_Core/install/install_sa_profiles.py no
-python ESSArch_Core/install/install_sa_profiles.py eark
+python -m ESSArch_Core.install.install_sa_profiles se
+python -m ESSArch_Core.install.install_sa_profiles se SE_SA_transparent.json
+# echo "Installing NO profiles"
+# python -m ESSArch_Core.install.install_sa_profiles no
+# echo "Installing EU profiles"
+# python -m ESSArch_Core.install.install_sa_profiles eu
 
 if [ ! -f .vscode/settings.json ]; then
     cp .vscode/settings.json.default .vscode/settings.json

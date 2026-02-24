@@ -264,9 +264,14 @@ CACHES = {
 }
 
 try:
+    from local_essarch_settings import UNOSERVER_URL
+except ImportError:
+    UNOSERVER_URL = env.str('ESSARCH_UNOSERVER_URL', env.str('UNOSERVER_URL', 'http://localhost:2003'))
+
+try:
     from local_essarch_settings import TIKA_URL
 except ImportError:
-    TIKA_URL = env.str('ESSARCH_TIKA_URL', env.str('TIKA_URL', 'http://localhost:9998/tika'))
+    TIKA_URL = env.str('ESSARCH_TIKA_URL', env.str('TIKA_URL', 'http://localhost:9998'))
 
 try:
     from local_essarch_settings import ELASTICSEARCH_URL

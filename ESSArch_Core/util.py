@@ -45,7 +45,7 @@ from os import scandir, walk
 from pathlib import Path
 from subprocess import PIPE, Popen
 from time import sleep
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import chardet
 import requests
@@ -610,6 +610,8 @@ def get_script_directory():
 
 def convert_file(path, new_format='pdf', filter_option='SelectPdfVersion=1', new_path=None):
     logger = logging.getLogger('essarch')
+    UNOSERVER_URL = getattr(settings, 'UNOSERVER_URL', 'http://localhost:2003')
+    unoserver_url = urlparse(UNOSERVER_URL)    
     path = Path(path)
     if new_path:
         new_path = Path(new_path)
@@ -617,8 +619,8 @@ def convert_file(path, new_format='pdf', filter_option='SelectPdfVersion=1', new
         new_path = path.with_suffix('.' + new_format)
 
     cmd = ['unoconvert']
-    cmd.extend(['--convert-to', new_format, '--filter-option',
-                filter_option, path.as_posix(), new_path.as_posix()])
+    cmd.extend(['--host', unoserver_url.hostname, '--port', str(unoserver_url.port), '--convert-to', new_format,
+                '--filter-option', filter_option, path.as_posix(), new_path.as_posix()])
     logger.info(''.join(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()

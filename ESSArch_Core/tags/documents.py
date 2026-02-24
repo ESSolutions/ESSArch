@@ -1,4 +1,5 @@
 import logging
+from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
@@ -414,7 +415,8 @@ class File(Component):
 
     @classmethod
     def enrich_with_content(cls, doc, file_obj):
-        TIKA_URL = getattr(settings, 'TIKA_URL', 'http://localhost:9998/tika')
+        base_url = getattr(settings, 'TIKA_URL', 'http://localhost:9998')
+        TIKA_URL = urljoin(base_url.rstrip('/') + '/', 'tika')
         file_obj.seek(0)
         response = requests.put(
             TIKA_URL,

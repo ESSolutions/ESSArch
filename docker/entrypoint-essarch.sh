@@ -21,19 +21,21 @@ if [ ! -f $ESSARCH_DIR/config/local_essarch_settings.py ]; then
     echo "Generate mimetypes"
     essarch mimetypes generate -q --no-overwrite
     echo "Running essarch install -q "
+    mkdir -p /ESSArch/config
     essarch install -q
     mkdir -p /ESSArch/config/essarch
     ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`
     echo "Found ESSArch in path: $ESSARCH"    
     echo "Installing SE profiles"
-    python $ESSARCH/install/install_sa_profiles.py se
-    #echo "Installing NO profiles"
-    #python $ESSARCH/install/install_sa_profiles.py no
-    echo "Installing EARK profiles"
-    python $ESSARCH/install/install_sa_profiles.py eark
+    python -m ESSArch_Core.install.install_sa_profiles se
+    python -m ESSArch_Core.install.install_sa_profiles se SE_SA_transparent.json
+    # echo "Installing NO profiles"
+    # python -m ESSArch_Core.install.install_sa_profiles no
+    # echo "Installing EU profiles"
+    # python -m ESSArch_Core.install.install_sa_profiles eu
 else
-    echo "Check if any new db migrations to apply"
-    django-admin migrate
+    echo "Try to apply updates to database"
+    essarch upgrade --no-dry-run -y
 fi
 
 if [ ! -f $ESSARCH_DIR/config/httpd.conf ]; then

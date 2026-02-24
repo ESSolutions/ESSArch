@@ -106,8 +106,20 @@ RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen; locale-gen
 # Libreoffice
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libreoffice \
+    fonts-dejavu \
     && rm -rf /var/lib/apt/lists/*
 
+# -----------------------------
+# Install pip for /usr/bin/python3 system-wide and unoserver into it, to avoid issues 
+# with /usr/local/bin/python3 that is not used by libreoffice for unoserver.
+# -----------------------------
+RUN curl -sSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+RUN /usr/bin/python3 /tmp/get-pip.py --break-system-packages
+RUN /usr/bin/python3 -m pip install --no-cache-dir unoserver --break-system-packages
+RUN python3 /tmp/get-pip.py
+RUN rm /tmp/get-pip.py
+
+# Datasette
 RUN pip install --no-cache-dir datasette
 
 

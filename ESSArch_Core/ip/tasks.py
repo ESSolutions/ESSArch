@@ -583,6 +583,7 @@ def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
 
 
 @app.task(bind=True)
+@transaction.atomic
 def WriteInformationPackageToSearchIndex(self):
     ip = self.get_information_package()
     ip.write_to_search_index(self.get_processtask())
