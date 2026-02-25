@@ -10,6 +10,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
@@ -30,6 +32,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh opensearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         /code/docker/entrypoint-essarch-dev.sh
     ports:
       - 8000:8000
@@ -41,6 +44,7 @@ services:
       - redis
       - opensearch
       - tika
+      - unoserver
     networks:
       - essarch
 
@@ -50,6 +54,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
@@ -68,6 +74,7 @@ services:
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh opensearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         django-admin worker -l INFO -Q celery,file_operation,validation,io_disk
     restart: on-failure
     tty: true
@@ -76,6 +83,7 @@ services:
       - redis
       - opensearch
       - tika
+      - unoserver
       - essarch
     networks:
       - essarch
@@ -86,6 +94,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
@@ -103,6 +113,7 @@ services:
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh opensearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         essarch beat -l INFO
     restart: on-failure
     tty: true
@@ -111,6 +122,7 @@ services:
       - redis
       - opensearch
       - tika
+      - unoserver
       - essarch
     networks:
       - essarch
@@ -121,6 +133,8 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_TIKA_URL: http://tika:9998
+      ESSARCH_UNOSERVER_URL: http://unoserver:2003
       ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
@@ -138,6 +152,7 @@ services:
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh opensearch 9200
         /code/docker/wait_for.sh tika 9998
+        /code/docker/wait_for.sh unoserver 2003
         /code/docker/entrypoint-datasette.sh
     ports:
       - 8001:8001
@@ -148,6 +163,7 @@ services:
       - redis
       - opensearch
       - tika
+      - unoserver
       - essarch
     profiles:
       - datasette
@@ -195,6 +211,28 @@ services:
     image: 'rabbitmq'
     ports:
       - 5672:5672
+    networks:
+      - essarch
+
+  unoserver:
+    image: essolutionsab/essarch_dev
+    environment:
+      HOME: /tmp
+    command:
+      - /usr/bin/python3
+      - -m
+      - unoserver.server
+      - --interface
+      - 0.0.0.0
+      - --port
+      - "2003"
+      - --uno-port
+      - "2002"
+      - --user-installation
+      - /tmp/unoserver-user
+    ports:
+      - 2003:2003
+    restart: on-failure
     networks:
       - essarch
 

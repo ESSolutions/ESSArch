@@ -9,7 +9,7 @@ CELERYD_NODES=${CELERYD_NODES="worker_celery worker_validation worker_file_opera
 CELERY_BIN=${CELERY_BIN="/usr/local/bin/celery"}
 CELERY_APP=${CELERY_APP="ESSArch_Core.config"}
 CELERYD_CHDIR=${CELERYD_CHDIR="${ESSARCH_DIR}"}
-CELERYD_OPTS=${CELERYD_OPTS="-Q:worker_celery celery -c:worker_celery 1 -Q:worker_validation validation -c:worker_validation 4 -Q:worker_file_operation file_operation -c:worker_file_operation 4 -Q:worker_io_disk io_disk -c:worker_io_disk 4 -Q:worker_io_tape io_tape -c:worker_io_tape 4 -Ofair"}
+CELERYD_OPTS=${CELERYD_OPTS="-Q:worker_celery celery -c:worker_celery 4 -Q:worker_validation validation -c:worker_validation 4 -Q:worker_file_operation file_operation -c:worker_file_operation 4 -Q:worker_io_disk io_disk -c:worker_io_disk 4 -Q:worker_io_tape io_tape -c:worker_io_tape 4 -Ofair"}
 CELERYD_LOG_LEVEL=${CELERYD_LOG_LEVEL=INFO}
 CELERYD_LOG_FILE=${CELERYD_LOG_FILE="${ESSARCH_DIR}/log/celery_%N.log"}
 CELERYD_PID_FILE=${CELERYD_PID_FILE="${ESSARCH_DIR}/log/proc/celery_%N.pid"}

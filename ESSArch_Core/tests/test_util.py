@@ -39,7 +39,8 @@ class ConvertFileTests(SimpleTestCase):
             convert_file("test.docx", "pdf")
 
         cmd = ['unoconvert']
-        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
+        cmd.extend(['--host', 'localhost', '--port', '2003', '--convert-to', 'pdf', '--filter-option',
+                    'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.Path.exists', return_value=False)
@@ -54,7 +55,8 @@ class ConvertFileTests(SimpleTestCase):
             convert_file("test.docx", "pdf")
 
         cmd = ['unoconvert']
-        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
+        cmd.extend(['--host', 'localhost', '--port', '2003', '--convert-to', 'pdf', '--filter-option',
+                    'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.Path.exists', return_value=True)
@@ -68,7 +70,8 @@ class ConvertFileTests(SimpleTestCase):
         self.assertEqual(convert_file("test.docx", "pdf"), 'test.pdf')
 
         cmd = ['unoconvert']
-        cmd.extend(['--convert-to', 'pdf', '--filter-option', 'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
+        cmd.extend(['--host', 'localhost', '--port', '2003', '--convert-to', 'pdf', '--filter-option',
+                    'SelectPdfVersion=1', 'test.docx', 'test.pdf'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
 
