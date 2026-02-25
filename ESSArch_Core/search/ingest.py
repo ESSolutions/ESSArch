@@ -3,7 +3,7 @@ import os
 import uuid
 
 from django.conf import settings
-from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch import ConnectionError, RequestError, TransportError
 
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.tags.documents import Directory, File
@@ -51,17 +51,49 @@ def index_document(tag_version, filepath, index_file_content=True):
 
     doc = File.from_obj(tag_version)
 
+    MAX_INDEX_SIZE = getattr(settings, 'ELASTICSEARCH_MAX_INDEX_SIZE', None)
+
+    if index_file_content and MAX_INDEX_SIZE and size > MAX_INDEX_SIZE:
+        logger.info(f'Skipping content indexing due to size for {filepath}')
+        index_file_content = False
+
     try:
         if index_file_content:
             with open(filepath, 'rb') as f:
                 doc = File.enrich_with_content(doc, file_obj=f)
-            doc.save()
         else:
-            logger.debug('Skip to index file content for {}'.format(filepath))
-            doc.save()
-    except ElasticsearchException:
-        logger.exception('Failed to index {}'.format(filepath))
+            logger.debug(f'Skip to index file content for {filepath}')
+        doc.save()
+
+    except TransportError as e:
+        if e.status_code == 413:
+            logger.error(f'Document too large to index: {filepath}')
+            RETRY_WITHOUT_CONTENT_IF_TOO_LARGE = getattr(settings,
+                                                         'ELASTICSEARCH_RETRY_WITHOUT_CONTENT_IF_TOO_LARGE',
+                                                         False)
+            if index_file_content and RETRY_WITHOUT_CONTENT_IF_TOO_LARGE:
+                logger.info(f'Retrying without file content for {filepath}')
+                try:
+                    doc = File.from_obj(tag_version)
+                    doc.save()
+                except Exception:
+                    logger.exception(f'Retry without content also failed for {filepath}')
+                    raise
+            else:
+                logger.error(f'Not retrying without content for {filepath} due to settings')
+                raise
+        else:
+            logger.exception(f'Elasticsearch transport error indexing {filepath}')
+            raise
+
+    except (ConnectionError, RequestError):
+        logger.exception(f'Elasticsearch connection/request error indexing {filepath}')
         raise
+
+    except Exception:
+        logger.exception(f'Unexpected error indexing {filepath}')
+        raise
+
     return doc, tag_version
 
 
