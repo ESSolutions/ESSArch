@@ -1,4 +1,5 @@
 import logging
+import time
 from urllib.parse import urljoin
 
 import requests
@@ -24,6 +25,13 @@ from elasticsearch_dsl import (
 
 from ESSArch_Core.search.documents import DocumentBase
 from ESSArch_Core.tags.models import StructureUnit, TagVersion
+from ESSArch_Core.util import (
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
+)
+
+MB = 1024 * 1024
 
 ngram_tokenizer = tokenizer('custom_ngram_tokenizer', type='ngram', min_gram=3,
                             max_gram=3)
@@ -415,24 +423,47 @@ class File(Component):
 
     @classmethod
     def enrich_with_content(cls, doc, file_obj):
+        logger = logging.getLogger('essarch.search')
         base_url = getattr(settings, 'TIKA_URL', 'http://localhost:9998')
         TIKA_URL = urljoin(base_url.rstrip('/') + '/', 'tika')
         file_obj.seek(0)
-        response = requests.put(
-            TIKA_URL,
-            data=file_obj,
-            headers={"Accept": "text/plain; charset=utf-8"},
-            timeout=600
-        )
 
-        if response.status_code == 200:
-            doc.content = response.content.decode("utf-8")
-        else:
-            logger = logging.getLogger('essarch.search')
-            logger.warning('Failed to extract content for file with id %s using Tika, status code: %s, response: %s',
-                           doc.id, response.status_code, response.text)
-            raise Exception('Failed to extract content for file with id {}, status code: {}, response: {}'.format(
-                doc.id, response.status_code, response.text))
+        try:
+            time_start = time.time()
+            response = requests.put(
+                TIKA_URL,
+                data=file_obj,
+                headers={"Accept": "text/plain; charset=utf-8"},
+                timeout=600
+            )
+            time_end = time.time()
+            time_elapsed = time_end - time_start
+            fsize_mb = doc.size / MB
+            try:
+                mb_per_sec = fsize_mb / time_elapsed
+            except ZeroDivisionError:
+                mb_per_sec = fsize_mb
+
+            if response.status_code == 200:
+                doc.content = response.content.decode("utf-8")
+                response_size_bytes = len(response.content)
+                response_size_chars = len(doc.content)
+                logger.info(
+                    f'Extracted content for file name {doc.filename} ({doc.id}), size: '
+                    f'{pretty_size(response_size_bytes)}, decoded: {response_size_chars} characters, filesize: '
+                    f'{pretty_size(doc.size)}, speed: {pretty_mb_per_sec(mb_per_sec)} MB/Sec '
+                    f'({pretty_time_to_sec(time_elapsed)} sec)')
+            else:
+                logger.warning(
+                    f'Failed to extract content for file name {doc.filename} ({doc.id}) using Tika, '
+                    f'status code: {response.status_code}, response: {response.text}')
+                raise Exception(
+                    f'Failed to extract content for file with name {doc.filename} ({doc.id}), '
+                    f'status code: {response.status_code}, response: {response.text}')
+
+        except requests.RequestException as e:
+            logger.error(f'Request to TIKA failed for file name {doc.filename} ({doc.id}), error: {str(e)}')
+            raise
 
         return doc
 
