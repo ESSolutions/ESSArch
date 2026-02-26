@@ -37,4 +37,4 @@ Dependencies
 
     $ docker-compose logs -f essarch
 
-4. Finally visit http://localhost:8000 in your browser
+4. Finally visit http://localhost:8080 in your browser

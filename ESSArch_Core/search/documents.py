@@ -4,10 +4,16 @@ import time
 
 import elasticsearch_dsl as es
 from django.conf import settings
-from elasticsearch import helpers as es_helpers
+from elasticsearch import (
+    ConnectionError,
+    RequestError,
+    TransportError,
+    helpers as es_helpers,
+)
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 
 from ESSArch_Core.search.alias_migration import migrate
+from ESSArch_Core.util import pretty_size
 
 
 class DocumentBase(es.Document):
@@ -75,9 +81,76 @@ class DocumentBase(es.Document):
         conn = get_es_connection()
         for start in range(0, num, batch_size):
             end = start + batch_size
-            batch_qs = queryset[start:end]
-            batch = cls.create_batch(list(batch_qs), index_file_content)
-            es_helpers.bulk(client=conn, actions=batch)
+            batch_qs = list(queryset[start:end])
+
+            try:
+                batch = cls.create_batch(batch_qs, index_file_content)
+                es_helpers.bulk(client=conn, actions=batch)
+
+            except TransportError as e:
+                if e.status_code != 413:
+                    logger.exception('Elasticsearch transport error during bulk indexing')
+                    raise
+
+                logger.error(
+                    f'Bulk request too large (413) for batch size {len(batch_qs)}. '
+                    'Retrying documents individually.'
+                )
+
+                RETRY_WITHOUT_CONTENT_IF_TOO_LARGE = getattr(
+                    settings,
+                    'ELASTICSEARCH_RETRY_WITHOUT_CONTENT_IF_TOO_LARGE',
+                    False
+                )
+
+                for obj, action in zip(batch_qs, batch):
+                    try:
+                        es_helpers.bulk(client=conn, actions=[action])
+
+                    except TransportError as single_error:
+                        if single_error.status_code != 413:
+                            logger.exception(
+                                f'Elasticsearch error indexing document {obj.custom_fields['filename']} ({obj.pk})'
+                            )
+                            raise
+
+                        logger.warning(
+                            f'Document {obj.custom_fields['filename']} ({obj.pk}) too large for individual indexing.'
+                        )
+
+                        if index_file_content and RETRY_WITHOUT_CONTENT_IF_TOO_LARGE:
+                            logger.info(
+                                f'Retrying document {obj.custom_fields['filename']} ({obj.pk}) without file content.'
+                            )
+
+                            try:
+                                single_batch = cls.create_batch(
+                                    [obj],
+                                    index_file_content=False
+                                )
+                                es_helpers.bulk(client=conn, actions=single_batch)
+
+                            except Exception:
+                                logger.exception(
+                                    f'Retry without content failed for document '
+                                    f'{obj.custom_fields['filename']} ({obj.pk})'
+                                )
+                                raise
+                        else:
+                            logger.error(
+                                f'Not retrying without content for {obj.custom_fields['filename']} '
+                                f'({obj.pk}) due to settings'
+                            )
+                            raise
+
+            except (ConnectionError, RequestError):
+                logger.exception('Elasticsearch connection/request error')
+                raise
+
+            except Exception:
+                logger.exception('Unexpected error indexing')
+                raise
+
             time.sleep(0.3)
 
     @classmethod
@@ -86,16 +159,22 @@ class DocumentBase(es.Document):
         Creates the document dict for indexing.
         """
         logger = logging.getLogger('essarch.search')
+        MAX_INDEX_SIZE = getattr(settings, 'ELASTICSEARCH_MAX_INDEX_SIZE', None)
         batch = []
         for obj in objects:
             doc = cls.from_obj(obj)
+            obj_index_file_content = index_file_content
 
-            if cls.__name__ == 'File' and obj.tag.information_package and index_file_content:
+            if (cls.__name__ == 'File' and obj.tag.information_package and obj_index_file_content and
+                    MAX_INDEX_SIZE and obj.custom_fields.get('size', 0) > MAX_INDEX_SIZE):
+                logger.info(
+                    f'Skipping content indexing due to size for {obj.custom_fields.get("filename", "unknown")} '
+                    f'with size {pretty_size(obj.custom_fields.get("size", 0))}')
+                obj_index_file_content = False
+
+            if cls.__name__ == 'File' and obj.tag.information_package and obj_index_file_content:
                 exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
-                if 'formatkey' in obj.custom_fields.keys():
-                    format_registry_key = obj.custom_fields['formatkey']
-                else:
-                    format_registry_key = None
+                format_registry_key = obj.custom_fields.get('formatkey', None)
                 if format_registry_key not in exclude_file_format_from_indexing_content:
                     ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
                     try:

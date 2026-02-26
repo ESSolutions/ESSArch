@@ -2777,7 +2777,6 @@ class InformationPackage(models.Model):
 
         return ip_migrate_workflow_step
 
-    @transaction.atomic
     def write_to_search_index(self, task):
         logger = logging.getLogger('essarch.ip')
         srcdir = self.object_path
