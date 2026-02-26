@@ -112,6 +112,12 @@ def index_directory(tag_version, dirpath):
     return doc, tag_version
 
 
+def generate_tag_id(ip, rel_path):
+    normalized = os.path.normpath(rel_path).replace("\\", "/").lower()
+    base_string = f"{ip.pk}:{normalized}"
+    return uuid.uuid5(uuid.NAMESPACE_URL, base_string)
+
+
 def index_path(ip, path, parent=None, group=None, index_file_content=True):
     """
     Indexes the file or directory at path to elasticsearch
@@ -128,27 +134,34 @@ def index_path(ip, path, parent=None, group=None, index_file_content=True):
 
     logger = logging.getLogger('essarch.search.ingest')
     isfile = os.path.isfile(path)
-    id = str(uuid.uuid4())
 
-    tag = Tag.objects.create(information_package=ip)
-    tag_version = TagVersion(pk=id, tag=tag, name=os.path.basename(path))
+    name = os.path.basename(path)
+    rel_path = os.path.relpath(path, ip.object_path)
+
+    tag_id = generate_tag_id(ip, rel_path)
+
+    tag, _ = Tag.objects.get_or_create(id=tag_id, defaults={"information_package": ip})
+    tag_version, _ = TagVersion.objects.get_or_create(
+        tag=tag,
+        name=name,
+        defaults={
+            "elastic_index": "document" if isfile else "directory",
+            "type": TagVersionType.objects.get_or_create(name="document" if isfile else "directory",
+                                                         archive_type=False)[0]
+        }
+    )
+
     if parent:
-        TagStructure.objects.create(tag=tag, parent=parent, structure=parent.structure)
+        TagStructure.objects.get_or_create(tag=tag, parent=parent, structure=parent.structure)
 
     logger.debug('indexing {}'.format(path))
 
     if isfile:
-        tag_version.elastic_index = 'document'
-        # TODO: minimize db queries
-        tag_version.type = TagVersionType.objects.get_or_create(name='document', archive_type=False)[0]
         doc, tag_version = index_document(tag_version, path, index_file_content)
-        tag_version.save()
     else:
-        tag_version.elastic_index = 'directory'
-        # TODO: minimize db queries
-        tag_version.type = TagVersionType.objects.get_or_create(name='directory', archive_type=False)[0]
         doc, tag_version = index_directory(tag_version, path)
-        tag_version.save()
+
+    tag_version.save()
 
     if group:
         group.add_object(tag_version)
