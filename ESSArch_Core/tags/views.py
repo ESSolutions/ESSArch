@@ -1,4 +1,3 @@
-import elasticsearch
 from django.db import transaction
 from django.db.models import (
     CharField,
@@ -444,17 +443,9 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 raise exceptions.ValidationError(
                     _('Cannot delete units in instances of type {}').format(structure.type)
                 )
-            # Delete elasticsearch document if exists
-            try:
-                doc = StructureUnitDocument.from_obj(instance)
-                doc.get(doc.id)
-            except elasticsearch.NotFoundError:
-                pass
-            else:
-                instance.delete()
-                doc.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
+
             instance.delete()
+            # Delete elasticsearch document if exists by signal
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

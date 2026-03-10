@@ -435,6 +435,7 @@
       ["search", "tags", "tag", "Can search"],
       ["create_archive", "tags", "tag", "Can create new archives"],
       ["change_archive", "tags", "tag", "Can change archives"],
+      ["change_classification", "tags", "tag", "Can change classification"],
       ["change_organization", "tags", "tag", "Can change organization for archives"],
       ["delete_archive", "tags", "tag", "Can delete archives"],
       ["change_tag_location", "tags", "tag", "Can change tag location"],

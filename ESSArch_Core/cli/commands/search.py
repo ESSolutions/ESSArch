@@ -7,6 +7,12 @@ from ESSArch_Core.config.decorators import initialize
 from ESSArch_Core.search import alias_migration
 
 
+@initialize
+def import_globally():
+    global Structure
+    from ESSArch_Core.tags.models import Structure
+
+
 def get_indexes(indexes):
     all_indexes = getattr(settings, 'ELASTICSEARCH_INDEXES', {'default': {}})['default']
 
@@ -85,3 +91,59 @@ def clear_index(index):
 
 def index_documents(index, batch_size, remove_stale, index_file_content=False):
     index.index_documents(batch_size, remove_stale, index_file_content)
+
+
+@click.command()
+@click.option('--template-id', type=str, help="Delete all structures belonging to this template UUID")
+@click.option('--structure-id', type=str, help="Delete a specific structure UUID")
+@click.option('--dry-run', is_flag=True, help="Show what would be deleted without actually deleting")
+@click.option('-y', '--yes', is_flag=True, help="Skip confirmation prompt")
+@initialize
+def delete_structures(template_id, structure_id, dry_run, yes):
+    """
+    Delete Structure objects and their related tagstructures.
+    """
+    import_globally()
+
+    # Validate options
+    if template_id and structure_id:
+        raise click.UsageError("Use only ONE of --template-id or --structure-id")
+
+    if not template_id and not structure_id:
+        raise click.UsageError("You must provide either --template-id or --structure-id")
+
+    # Query structures
+    if template_id:
+        structures = Structure.objects.filter(template_id=template_id)
+
+    elif structure_id:
+        structures = Structure.objects.filter(id=structure_id)
+
+    count = structures.count()
+
+    if count == 0:
+        click.echo("No structures found.")
+        return
+
+    click.echo(f"{count} structure(s) will be affected.")
+
+    if dry_run:
+        click.echo("DRY RUN MODE")
+        for s in structures:
+            click.echo(f"Would delete structure {s}")
+            for ts in s.tagstructure_set.all():
+                click.echo(f"  Would delete related tagstructure {ts}")
+        return
+
+    if not yes:
+        click.confirm("Are you sure you want to delete these structures?", abort=True)
+
+    for structure in structures:
+        tag_count = structure.tagstructure_set.count()
+
+        click.echo(f"Deleting structure {structure.id} with {tag_count} tagstructure(s)")
+
+        structure.tagstructure_set.all().delete()
+        structure.delete()
+
+    click.echo("Done.")

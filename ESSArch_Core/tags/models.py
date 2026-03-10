@@ -252,7 +252,7 @@ class Structure(models.Model):
 
     def create_template_instance(self, archive_tag):
         try:
-            old_archive_ts = archive_tag.current_version.get_active_structure()
+            old_archive_ts = archive_tag.current_version.get_active_structure(version_link=self.version_link)
         except ObjectDoesNotExist:
             old_archive_ts = None
 
@@ -270,11 +270,25 @@ class Structure(models.Model):
         # create old descendants from archive if exists
         logger = logging.getLogger('essarch.tags')
         if old_archive_ts is not None:
-            for old_unit in old_archive_ts.structure.units.prefetch_related('notes', 'identifiers').select_related(
-                    'parent').exclude(reference_code__in=new_structure_reference_code_list):
-                logger.debug('Create template instance for old_unit: {} in structure: {}'.format(
-                    old_unit, new_structure))
+            logger.debug('new_structure_reference_code_list: {} to exclude'.format(new_structure_reference_code_list))
+            missing_units = (
+                old_archive_ts.structure.units
+                .prefetch_related('notes', 'identifiers')
+                .select_related('parent')
+                .exclude(reference_code__in=new_structure_reference_code_list)
+                .order_by('tree_id', 'lft')   # IMPORTANT: ensures parent before child
+            )
+
+            for old_unit in missing_units:
+                logger.debug(
+                    'Create template instance for old_unit: %s in structure: %s',
+                    old_unit,
+                    new_structure
+                )
                 old_unit.create_template_instance(new_structure, old_archive_ts)
+
+            # copy existing tag structures to new structure
+            old_archive_ts.copy_descendants_to_new_structure(new_structure)
 
         return new_structure, archive_tagstructure
 
@@ -360,7 +374,6 @@ class Structure(models.Model):
                 )
                 new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
                 su_objs_values.extend(new_instance.units.all().values_list('pk', flat=True))
-                archive_tag_structure.copy_descendants_to_new_structure(new_instance)
                 logger.info('Finished to publish new structure: {} to archive: {}'.format(
                     new_instance, archive_tag_structure))
 
@@ -500,6 +513,20 @@ class StructureUnit(MPTTModel):
 
         if old_parent_ref_code is not None:
             parent = structure.get_unit_by_ref(old_parent_ref_code)
+
+        if template_unit and not template_unit.structure.is_template:
+            logger.debug(
+                "Provided template_unit %s is not from template structure. Resolving real template.",
+                template_unit
+            )
+
+            template_unit = StructureUnit.objects.filter(
+                structure__is_template=True,
+                reference_code=self.reference_code,
+                structure__version_link=old_archive_ts.structure.version_link if old_archive_ts else None
+            ).first()
+
+            logger.debug("Resolved template_unit: %s", template_unit)
 
         new_unit = StructureUnit.objects.create(
             structure=structure,
@@ -813,7 +840,9 @@ class Tag(models.Model):
 
         return structures
 
-    def get_active_structure(self):
+    def get_active_structure(self, version_link=None):
+        if version_link is not None:
+            return self.structures.filter(structure__version_link=version_link).latest()
         return self.structures.latest()
 
     def get_root(self, structure=None):
@@ -869,6 +898,7 @@ class Tag(models.Model):
             ('search', 'Can search'),
             ('create_archive', 'Can create new archives'),
             ('change_archive', 'Can change archives'),
+            ('change_classification', 'Can change classification'),
             ('change_organization', 'Can change organization for archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
@@ -1272,8 +1302,8 @@ class TagVersion(models.Model):
 
         return structures
 
-    def get_active_structure(self):
-        return self.tag.get_active_structure()
+    def get_active_structure(self, version_link=None):
+        return self.tag.get_active_structure(version_link=version_link)
 
     def get_root(self, structure=None):
         try:
@@ -1417,6 +1447,7 @@ class TagStructure(MPTTModel):
 
         if new_unit is None and self.structure_unit is not None:
             try:
+                logger.debug("Looking for unit {} in structure {}".format(self.structure_unit, new_structure))
                 new_unit = self.structure_unit.get_related_in_other_structure(new_structure).get()
             except StructureUnit.DoesNotExist:
                 logger.exception(f'Structure unit instance of {self} does not exist in new structure {new_structure}')

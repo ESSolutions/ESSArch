@@ -735,7 +735,7 @@ export default class SearchDetailCtrl {
                   struct = item;
                 }
               });
-              vm.removeNodeFromStructureModal(node, struct);
+              vm.removeNodeFromStructureModal(node.original, struct);
             },
           };
           const newVersion = {

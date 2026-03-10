@@ -313,6 +313,7 @@ list(
             'ESSArch_Core.cli.commands.search.clear',
             'ESSArch_Core.cli.commands.search.migrate',
             'ESSArch_Core.cli.commands.search.rebuild',
+            'ESSArch_Core.cli.commands.search.delete_structures'
         )
     )
 )

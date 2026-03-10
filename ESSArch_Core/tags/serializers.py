@@ -1081,7 +1081,7 @@ class TransferEditNodesSerializer(serializers.Serializer):
 
 class NodeWriteSerializer(serializers.Serializer):
     name = serializers.CharField()
-    description = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
     start_date = serializers.DateTimeField(required=False, allow_null=True)
     end_date = serializers.DateTimeField(required=False, allow_null=True)
     custom_fields = serializers.JSONField(required=False)
@@ -1355,12 +1355,14 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
             tag.current_version = tag_version
             tag.save()
 
+            su_objs_values = []
             for structure in structures:
                 structure_instance, _ = structure.create_template_instance(tag)
                 structure_instance.create_date = timezone.now()
                 structure_instance.save()
-                for instance_unit in structure_instance.units.all():
-                    StructureUnitDocument.from_obj(instance_unit).save()
+                su_objs_values.extend(structure_instance.units.all().values_list('pk', flat=True))
+
+            StructureUnitDocument.index_documents(queryset=StructureUnit.objects.filter(pk__in=su_objs_values))
 
             group = self.context['request'].user.user_profile.current_organization
             # group.add_object(tag)
@@ -1388,6 +1390,7 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
         self.update_notes(instance, notes_data)
 
         with transaction.atomic():
+            su_objs_values = []
             for structure in structures:
                 try:
                     ts = TagStructure.objects.get(tag=instance.tag, structure__template=structure)
@@ -1397,8 +1400,9 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
                     structure_instance, _ = structure.create_template_instance(instance.tag)
                     structure_instance.create_date = timezone.now()
                     structure_instance.save()
-                    for instance_unit in structure_instance.units.all():
-                        StructureUnitDocument.from_obj(instance_unit).save()
+                    su_objs_values.extend(structure_instance.units.all().values_list('pk', flat=True))
+
+            StructureUnitDocument.index_documents(queryset=StructureUnit.objects.filter(pk__in=su_objs_values))
 
             instance.tag.appraisal_date = appraisal_date
             instance.tag.save()
