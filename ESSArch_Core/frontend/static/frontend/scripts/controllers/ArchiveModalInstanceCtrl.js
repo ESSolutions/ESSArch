@@ -30,7 +30,9 @@ export default class ArchiveModalInstanceCtrl {
             $ctrl.archive.use_uuid_as_refcode = true;
           }
           $ctrl.archive.type = angular.copy(data.archive.type.pk);
-          $ctrl.initStructureSearch = angular.copy(data.archive.structures[0].name);
+          if (data.archive.structures[0]) {
+            $ctrl.initStructureSearch = angular.copy(data.archive.structures[0].name);
+          }
           $ctrl.initAgentSearch = angular.copy(data.archive.agents[0].agent.names[0].main);
           delete $ctrl.archive._source;
         } else {

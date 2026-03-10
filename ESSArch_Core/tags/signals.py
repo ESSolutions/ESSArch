@@ -4,7 +4,8 @@ from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from elasticsearch.exceptions import NotFoundError
 
-from ESSArch_Core.tags.models import Tag, TagVersion
+from ESSArch_Core.tags.documents import StructureUnitDocument
+from ESSArch_Core.tags.models import StructureUnit, Tag, TagVersion
 
 
 @receiver(post_save, sender=TagVersion)
@@ -56,3 +57,11 @@ def log_after_deleting_tag_version(sender, instance, **kwargs):
 def log_after_deleting_tag(sender, instance, **kwargs):
     logger = logging.getLogger('essarch.core')
     logger.debug(f"Tag '{instance}' was deleted.")
+
+
+@receiver(post_delete, sender=StructureUnit)
+def delete_structure_unit_es(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.core')
+    logger.debug(f"Deleting StructureUnit document for StructureUnit: '{instance}'")
+    StructureUnitDocument._get_connection().delete(
+        index=StructureUnitDocument._index._name, id=instance.pk, ignore=404)
