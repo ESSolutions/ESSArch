@@ -4,6 +4,7 @@ import time
 
 import elasticsearch_dsl as es
 from django.conf import settings
+from django.core.paginator import Paginator
 from elasticsearch import (
     ConnectionError,
     RequestError,
@@ -79,9 +80,11 @@ class DocumentBase(es.Document):
         num = queryset.count()
         logger.debug('Perform bulk index for {} objects with batch_size: {}'.format(num, batch_size))
         conn = get_es_connection()
-        for start in range(0, num, batch_size):
-            end = start + batch_size
-            batch_qs = list(queryset[start:end])
+
+        paginator = Paginator(queryset, batch_size)
+
+        for page_num in paginator.page_range:
+            batch_qs = paginator.page(page_num).object_list
 
             try:
                 batch = cls.create_batch(batch_qs, index_file_content)
@@ -110,17 +113,19 @@ class DocumentBase(es.Document):
                     except TransportError as single_error:
                         if single_error.status_code != 413:
                             logger.exception(
-                                f'Elasticsearch error indexing document {obj.custom_fields['filename']} ({obj.pk})'
+                                f"Elasticsearch error indexing document {obj.custom_fields.get('filename')} ({obj.pk})"
                             )
                             raise
 
                         logger.warning(
-                            f'Document {obj.custom_fields['filename']} ({obj.pk}) too large for individual indexing.'
+                            f"Document {obj.custom_fields.get('filename')} ({obj.pk}) too large for "
+                            "individual indexing."
                         )
 
                         if index_file_content and RETRY_WITHOUT_CONTENT_IF_TOO_LARGE:
                             logger.info(
-                                f'Retrying document {obj.custom_fields['filename']} ({obj.pk}) without file content.'
+                                f"Retrying document {obj.custom_fields.get('filename')} ({obj.pk}) without "
+                                "file content."
                             )
 
                             try:
@@ -133,13 +138,13 @@ class DocumentBase(es.Document):
                             except Exception:
                                 logger.exception(
                                     f'Retry without content failed for document '
-                                    f'{obj.custom_fields['filename']} ({obj.pk})'
+                                    f"{obj.custom_fields.get('filename')} ({obj.pk})"
                                 )
                                 raise
                         else:
                             logger.error(
-                                f'Not retrying without content for {obj.custom_fields['filename']} '
-                                f'({obj.pk}) due to settings'
+                                f"Not retrying without content for {obj.custom_fields.get('filename')} "
+                                f"({obj.pk}) due to settings"
                             )
                             raise
 
@@ -210,7 +215,7 @@ class DocumentBase(es.Document):
             for item in items:
                 if str(item.meta.id) not in db_ids:
                     removed.append(item.meta.id)
-        for remove_id in removed:
-            cls.get(id=remove_id).delete()
+        actions = [{"_op_type": "delete", "_index": cls._index._name, "_id": rid} for rid in removed]
+        es_helpers.bulk(client=get_es_connection(), actions=actions)
 
         time.sleep(0.5)

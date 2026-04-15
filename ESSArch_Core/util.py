@@ -32,6 +32,7 @@ import os
 import platform
 import re
 import shutil
+import stat
 import sys
 import tarfile
 import time
@@ -435,6 +436,17 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
+def _handle_remove_error(func, path, exc):
+    if isinstance(exc, PermissionError):
+        try:
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+            return
+        except Exception:
+            pass
+    raise exc
+
+
 def delete_path(path, remote_host=None, remote_credentials=None, task=None):
     logger = logging.getLogger('essarch')
     session = None
@@ -494,7 +506,7 @@ def delete_path(path, remote_host=None, remote_credentials=None, task=None):
             task.reraise()
     else:
         try:
-            shutil.rmtree(path)
+            shutil.rmtree(path, onexc=_handle_remove_error)
         except NotADirectoryError:
             os.remove(path)
         except FileNotFoundError:

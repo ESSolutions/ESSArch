@@ -5,6 +5,7 @@ https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f4ecf
 """
 from datetime import datetime
 
+from elasticsearch_dsl import Mapping
 from elasticsearch_dsl.connections import get_connection
 
 
@@ -20,6 +21,23 @@ def setup_index(doctype):
 
     # create an index template
     index_template = doctype._index.as_template(alias, pattern)
+
+    # create a Mapping object and add dynamic templates
+    m = Mapping()
+    # m.meta('dynamic_templates', [
+    #     {
+    #         "strings_as_keyword": {
+    #             "match_mapping_type": "string",
+    #             "mapping": {
+    #             "type": "keyword"
+    #             }
+    #         }
+    #     }
+    # ])
+
+    # attach mapping to the template
+    index_template.mapping(m)
+
     # upload the template into elasticsearch
     # potentially overriding the one already there
     index_template.save()
