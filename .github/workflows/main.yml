@@ -139,6 +139,26 @@ jobs:
     runs-on: windows-latest
     env:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&extra_params=TrustServerCertificate=yes'
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: MyPassword42
+        ports:
+          - 1433:1433
+
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v6
 
@@ -165,7 +185,7 @@ jobs:
       - name: Cache pip wheels
         uses: actions/cache@v5
         with:
-          path: ${{ env.LOCALAPPDATA }}\pip\Cache
+          path: C:\Users\runneradmin\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
@@ -176,42 +196,30 @@ jobs:
           path: C:\installers
           key: windows-installers-gtk3-3.24.31-odbc18
 
-      - name: Cache Chocolatey packages
-        uses: actions/cache@v5
-        with:
-          path: C:\ProgramData\chocolatey\lib
-          key: ${{ runner.os }}-choco-${{ hashFiles('.github/workflows/*.yml') }}
-
-      - name: Cache Chocolatey downloads
-        uses: actions/cache@v5
-        with:
-          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ runner.os }}-choco-downloads
-
-      - name: Install system dependencies (cached)
+      - name: Install system dependencies
         id: deps
         run: |
-          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing sql-server-express..."
-            choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
-          }
-          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
-            Write-Error "sql-server-express MSSQLSERVER installation failed!"
-            exit 1
-          }   
+          ### using service
+          # if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+          #   Write-Host "Installing sql-server-express..."
+          #   choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
+          # }
+          # if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+          #   Write-Error "sql-server-express MSSQLSERVER installation failed!"
+          #   exit 1
+          # }   
 
           if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
             Write-Host "Installing imagemagick..."
             choco install imagemagick -y
           }            
 
-          if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing redis-64..."
-            choco install redis-64 --version 3.0.503 -y
-          }
+          ### using service
+          # if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
+          #   Write-Host "Installing redis-64..."
+          #   choco install redis-64 --version 3.0.503 -y
+          # }
 
-      - name: Install
-        run: |
           if (!(Test-Path "C:\installers")) {
             New-Item -ItemType Directory -Path "C:\installers"
           }
@@ -241,8 +249,10 @@ jobs:
           if (-not $odbcInstalled) {
             Write-Error "ODBC installation failed!"
              exit 1
-          }          
+          }
 
+      - name: Install
+        run: |
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
           git config user.name test
