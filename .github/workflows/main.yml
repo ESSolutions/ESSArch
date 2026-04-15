@@ -216,13 +216,15 @@ jobs:
           }
 
           if (!(Test-Path "C:\Program Files\GTK3-Runtime Win64")) {
+            Write-Host "Installing GTK3..."
             Start-Process -FilePath $gtk -Wait -ArgumentList "/S"
           }
 
-          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
-          if (-not $odbcInstalled) {
-            Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES /quiet /qn /norestart"
-          }
+          # $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          # if (-not $odbcInstalled) {
+          Write-Host "Installing ODBC driver..."
+          Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES /quiet /qn /norestart"
+          # }
 
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
