@@ -17,35 +17,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
-      - uses: actions/cache@v5
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -57,7 +46,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/docs.txt -r requirements/lint.txt
           pip check
-          yarn install --frozen-lockfile
 
       - name: doc8
         run: |
@@ -88,38 +76,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v5
-        with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Build
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
   build-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
+
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
@@ -166,12 +141,6 @@ jobs:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&extra_params=TrustServerCertificate=yes'
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -187,24 +156,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
-      - uses: actions/cache@v5
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pip-
 
       - name: Install
         run: |
@@ -236,9 +200,7 @@ jobs:
           echo "C:\Program Files\GTK3-Runtime Win64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build frontend
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
       - name: Test
         run: |
@@ -339,12 +301,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -360,24 +316,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
-      - uses: actions/cache@v5
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pip-
 
       - name: Setup apache http schemaserver
         run: |
@@ -421,9 +372,7 @@ jobs:
           sudo mv geckodriver /usr/local/bin
 
       - name: Build frontend
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
       - name: Test
         env:
