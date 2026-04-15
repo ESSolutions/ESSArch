@@ -160,26 +160,70 @@ jobs:
           cache-dependency-path: yarn.lock
 
       - name: Install Node dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --prefer-offline
 
       - name: Cache pip wheels
         uses: actions/cache@v5
         with:
-          path: ~/.cache/pip
+          path: ${{ env.LOCALAPPDATA }}\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Cache installers
+        uses: actions/cache@v5
+        with:
+          path: C:\installers
+          key: windows-installers-gtk3-3.24.31-odbc18
+
+      - name: Cache Chocolatey packages
+        uses: actions/cache@v5
+        with:
+          path: C:\ProgramData\chocolatey\lib
+          key: ${{ runner.os }}-choco-${{ hashFiles('.github/workflows/*.yml') }}
+
+      - name: Install system dependencies (cached)
+        id: deps
+        run: |
+          if (!(Test-Path "C:\deps_installed.txt")) {
+            if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
+              choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
+            }          
+            if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
+              choco install imagemagick -y
+            }            
+            if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
+              choco install redis-64 --version 3.0.503 -y
+            }            
+            New-Item C:\deps_installed.txt
+          }
+
       - name: Install
         run: |
-          powershell wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe -OutFile gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe
-          powershell 'Start-Process -FilePath "gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-          powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
-          powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
+          if (!(Test-Path "C:\installers")) {
+            New-Item -ItemType Directory -Path "C:\installers"
+          }
 
-          choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
-          choco install imagemagick
-          choco install redis-64 --version 3.0.503
+          $gtk = "C:\installers\gtk3.exe"
+          $odbc = "C:\installers\msodbcsql.msi"
+
+          if (!(Test-Path $gtk)) {
+            wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe -OutFile $gtk
+          }
+
+          if (!(Test-Path $odbc)) {
+            wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile $odbc
+          }
+
+          if (!(Test-Path "C:\gtk_installed.txt")) {
+            Start-Process -FilePath $gtk -Wait -ArgumentList /S
+            New-Item C:\gtk_installed.txt
+          }
+
+          if (!(Test-Path "C:\odbc_installed.txt")) {
+            Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES /quiet /qn /norestart"
+            New-Item C:\odbc_installed.txt
+          }
 
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
