@@ -192,14 +192,14 @@ jobs:
             choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           }
           # Verify install
-          if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
-            Write-Error "sql-server-express MSSQL$SQLEXPRESS installation failed!"
-            # exit 1
-          }   
-          # if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
-          #   Write-Error "sql-server-express MSSQLSERVER installation failed!"
+          # if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
+          #   Write-Error "sql-server-express MSSQL$SQLEXPRESS installation failed!"
           #   # exit 1
           # }   
+          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+            Write-Error "sql-server-express MSSQLSERVER installation failed!"
+            # exit 1
+          }   
 
           if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
             Write-Host "Installing imagemagick..."
