@@ -182,35 +182,33 @@ jobs:
           path: C:\ProgramData\chocolatey\lib
           key: ${{ runner.os }}-choco-${{ hashFiles('.github/workflows/*.yml') }}
 
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v5
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-choco-downloads
+
       - name: Install system dependencies (cached)
         id: deps
         run: |
-          # if (!(Test-Path "C:\deps_installed.txt")) {
-          # if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
-          if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
+          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
             Write-Host "Installing sql-server-express..."
             choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           }
-          # Verify install
-          # if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
-          #   Write-Error "sql-server-express MSSQL$SQLEXPRESS installation failed!"
-          #   # exit 1
-          # }   
           if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
             Write-Error "sql-server-express MSSQLSERVER installation failed!"
-            # exit 1
+            exit 1
           }   
 
           if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
             Write-Host "Installing imagemagick..."
             choco install imagemagick -y
           }            
+
           if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
             Write-Host "Installing redis-64..."
             choco install redis-64 --version 3.0.503 -y
-          }            
-          #  New-Item C:\deps_installed.txt
-          # }
+          }
 
       - name: Install
         run: |
@@ -239,24 +237,11 @@ jobs:
             Write-Host "Installing ODBC driver..."
             Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
           }
-          # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I C:\installers\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
-          # powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
-          # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"          
-          # Start-Process msiexec.exe -Wait -NoNewWindow -ArgumentList @(
-          #   "/i", $odbc,
-          #   "IACCEPTMSODBCSQLLICENSETERMS=YES",
-          #   "ADDLOCAL=ALL",
-          #   "/quiet",
-          #   "/qn",
-          #   "/norestart"
-          # )
-          # Verify install
           $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
           if (-not $odbcInstalled) {
             Write-Error "ODBC installation failed!"
-            # exit 1
+             exit 1
           }          
-          # }
 
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
