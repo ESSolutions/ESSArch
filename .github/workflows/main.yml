@@ -215,14 +215,13 @@ jobs:
             Start-BitsTransfer -Source "https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi" -Destination $odbc
           }
 
-          if (!(Test-Path "C:\gtk_installed.txt")) {
-            Start-Process -FilePath $gtk -Wait -ArgumentList /S
-            New-Item C:\gtk_installed.txt
+          if (!(Test-Path "C:\Program Files\GTK3-Runtime Win64")) {
+            Start-Process -FilePath $gtk -Wait -ArgumentList "/S"
           }
 
-          if (!(Test-Path "C:\odbc_installed.txt")) {
+          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          if (-not $odbcInstalled) {
             Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES /quiet /qn /norestart"
-            New-Item C:\odbc_installed.txt
           }
 
           python -m pip install --upgrade pip wheel setuptools
