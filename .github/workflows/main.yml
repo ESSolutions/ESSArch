@@ -224,7 +224,9 @@ jobs:
           # if (-not $odbcInstalled) {
           Write-Host "Installing ODBC driver..."
           # Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
-          powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I C:\installers\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
+          # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I C:\installers\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
+          powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
+          powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"          
           # Start-Process msiexec.exe -Wait -NoNewWindow -ArgumentList @(
           #   "/i", $odbc,
           #   "IACCEPTMSODBCSQLLICENSETERMS=YES",
