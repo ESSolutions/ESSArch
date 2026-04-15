@@ -223,7 +223,22 @@ jobs:
           # $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
           # if (-not $odbcInstalled) {
           Write-Host "Installing ODBC driver..."
-          Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES /quiet /qn /norestart"
+          # Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
+          # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
+          Start-Process msiexec.exe -Wait -NoNewWindow -ArgumentList @(
+            "/i", $odbc,
+            "IACCEPTMSODBCSQLLICENSETERMS=YES",
+            "ADDLOCAL=ALL",
+            "/quiet",
+            "/qn",
+            "/norestart"
+          )
+          # Verify install
+          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          if (-not $odbcInstalled) {
+            Write-Error "ODBC installation failed!"
+            # exit 1
+          }          
           # }
 
           python -m pip install --upgrade pip wheel setuptools
