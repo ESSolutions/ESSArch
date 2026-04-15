@@ -454,7 +454,7 @@ class InformationPackage(models.Model):
     last_changed_external = models.DateTimeField(null=True)
 
     responsible = models.ForeignKey(
-        'auth.User', verbose_name=_('responsible'), on_delete=models.SET_NULL,
+        'auth.User', verbose_name=_('responsible'), on_delete=models.PROTECT,
         related_name='information_packages', null=True
     )
 
@@ -3335,7 +3335,7 @@ class Workarea(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    user = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)

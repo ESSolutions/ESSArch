@@ -349,6 +349,9 @@ class File(Component):
     href = Keyword()  # @href
     size = Long()
     modified = Date()
+    formatname = Keyword()
+    formatversion = Keyword()
+    formatkey = Keyword()
     content = Text(analyzer='standard')
     attachment = Object(
         properties={
@@ -387,6 +390,7 @@ class File(Component):
 
         # Get already indexed file content from old_doc (field: content or attachment.content)
         content = None
+        old_doc = None
         try:
             old_doc = File.get(id=str(obj.pk), index='document')
         except NotFoundError:
