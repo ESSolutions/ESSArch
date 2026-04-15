@@ -187,12 +187,17 @@ jobs:
         run: |
           # if (!(Test-Path "C:\deps_installed.txt")) {
           # if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
-          Write-Host "Installing sql-server-express..."
-          choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
-          # }
+          if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing sql-server-express..."
+            choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
+          }
           # Verify install
-          if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
-            Write-Error "sql-server-express installation failed!"
+          if (!(Get-Service -Name 'MSSQL$SQLEXPRESS' -ErrorAction SilentlyContinue)) {
+            Write-Error "sql-server-express MSSQL$SQLEXPRESS installation failed!"
+            # exit 1
+          }   
+          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+            Write-Error "sql-server-express MSSQLSERVER installation failed!"
             # exit 1
           }   
 
@@ -229,13 +234,14 @@ jobs:
             Start-Process -FilePath $gtk -Wait -ArgumentList "/S"
           }
 
-          # $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
-          # if (-not $odbcInstalled) {
-          Write-Host "Installing ODBC driver..."
-          # Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
+          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          if (-not $odbcInstalled) {
+            Write-Host "Installing ODBC driver..."
+            Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
+          }
           # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I C:\installers\msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
-          powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
-          powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"          
+          # powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
+          # powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"          
           # Start-Process msiexec.exe -Wait -NoNewWindow -ArgumentList @(
           #   "/i", $odbc,
           #   "IACCEPTMSODBCSQLLICENSETERMS=YES",
