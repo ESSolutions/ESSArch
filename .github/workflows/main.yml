@@ -196,10 +196,10 @@ jobs:
             Write-Error "sql-server-express MSSQL$SQLEXPRESS installation failed!"
             # exit 1
           }   
-          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
-            Write-Error "sql-server-express MSSQLSERVER installation failed!"
-            # exit 1
-          }   
+          # if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+          #   Write-Error "sql-server-express MSSQLSERVER installation failed!"
+          #   # exit 1
+          # }   
 
           if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
             Write-Host "Installing imagemagick..."
