@@ -1,5 +1,8 @@
 name: Tests
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   pull_request:
   merge_group:
@@ -13,39 +16,28 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -54,7 +46,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/docs.txt -r requirements/lint.txt
           pip check
-          yarn install --frozen-lockfile
 
       - name: doc8
         run: |
@@ -79,49 +70,36 @@ jobs:
   build-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Build
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
   build-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v6
+
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -150,7 +128,7 @@ jobs:
   build-docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build
         run: |
@@ -162,16 +140,10 @@ jobs:
     env:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&extra_params=TrustServerCertificate=yes'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -181,38 +153,95 @@ jobs:
           echo "ESSARCH_DIR=D:\a\ESSArch\ESSArch" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile --prefer-offline
 
-      - uses: actions/cache@v3
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          path: ${{ env.LOCALAPPDATA }}\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pip-
 
-      - uses: actions/cache@v3
+      - name: Cache installers
+        uses: actions/cache@v5
         with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+          path: C:\installers
+          key: windows-installers-gtk3-3.24.31-odbc18
+
+      - name: Cache Chocolatey packages
+        uses: actions/cache@v5
+        with:
+          path: C:\ProgramData\chocolatey\lib
+          key: ${{ runner.os }}-choco-${{ hashFiles('.github/workflows/*.yml') }}
+
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v5
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-choco-downloads
+
+      - name: Install system dependencies (cached)
+        id: deps
+        run: |
+          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing sql-server-express..."
+            choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
+          }
+          if (!(Get-Service -Name 'MSSQLSERVER' -ErrorAction SilentlyContinue)) {
+            Write-Error "sql-server-express MSSQLSERVER installation failed!"
+            exit 1
+          }   
+
+          if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing imagemagick..."
+            choco install imagemagick -y
+          }            
+
+          if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing redis-64..."
+            choco install redis-64 --version 3.0.503 -y
+          }
 
       - name: Install
         run: |
-          powershell wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe -OutFile gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe
-          powershell 'Start-Process -FilePath "gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-          powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
-          powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
+          if (!(Test-Path "C:\installers")) {
+            New-Item -ItemType Directory -Path "C:\installers"
+          }
 
-          choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
-          choco install imagemagick
-          choco install redis-64 --version 3.0.503
+          $gtk = "C:\installers\gtk3.exe"
+          $odbc = "C:\installers\msodbcsql.msi"
+
+          if (!(Test-Path $gtk)) {
+            Start-BitsTransfer -Source "https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2022-01-04/gtk3-runtime-3.24.31-2022-01-04-ts-win64.exe" -Destination $gtk
+          }
+
+          if (!(Test-Path $odbc)) {
+            Start-BitsTransfer -Source "https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi" -Destination $odbc
+          }
+
+          if (!(Test-Path "C:\Program Files\GTK3-Runtime Win64")) {
+            Write-Host "Installing GTK3..."
+            Start-Process -FilePath $gtk -Wait -ArgumentList "/S"
+          }
+
+          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          if (-not $odbcInstalled) {
+            Write-Host "Installing ODBC driver..."
+            Start-Process msiexec.exe -Wait -ArgumentList "/I $odbc IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /qn /norestart"
+          }
+          $odbcInstalled = Get-OdbcDriver | Where-Object { $_.Name -like "*ODBC Driver 18*" }
+          if (-not $odbcInstalled) {
+            Write-Error "ODBC installation failed!"
+             exit 1
+          }          
 
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
@@ -233,9 +262,7 @@ jobs:
           echo "C:\Program Files\GTK3-Runtime Win64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build frontend
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
       - name: Test
         run: |
@@ -245,7 +272,7 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           name: Windows
           files: ./coverage.xml
@@ -335,16 +362,10 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+      - uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -354,27 +375,22 @@ jobs:
           echo "ESSARCH_DIR=/home/runner/work/ESSArch/ESSArch" >> $GITHUB_ENV
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-      - name: Get yarn cache
-        id: yarn_cache
-        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
 
-      - uses: actions/cache@v4
+      - name: Cache pip wheels
+        uses: actions/cache@v5
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements/*.txt') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+            ${{ runner.os }}-pip-
 
       - name: Setup apache http schemaserver
         run: |
@@ -418,9 +434,7 @@ jobs:
           sudo mv geckodriver /usr/local/bin
 
       - name: Build frontend
-        run: |
-          yarn install --frozen-lockfile
-          yarn build:prod
+        run: yarn build:prod
 
       - name: Test
         env:
@@ -431,7 +445,7 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           name: Linux (${{matrix.db}})
           files: ./coverage.xml
