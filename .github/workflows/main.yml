@@ -185,18 +185,24 @@ jobs:
       - name: Install system dependencies (cached)
         id: deps
         run: |
-          if (!(Test-Path "C:\deps_installed.txt")) {
-            if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
-              choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
-            }          
-            if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
-              choco install imagemagick -y
-            }            
-            if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
-              choco install redis-64 --version 3.0.503 -y
-            }            
-            New-Item C:\deps_installed.txt
+          # if (!(Test-Path "C:\deps_installed.txt")) {
+          if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
+            choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           }
+          # Verify install
+          if (!(Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
+            Write-Error "sql-server-express installation failed!"
+            # exit 1
+          }   
+
+          if (!(Get-Command magick -ErrorAction SilentlyContinue)) {
+            choco install imagemagick -y
+          }            
+          if (!(Get-Command redis-server -ErrorAction SilentlyContinue)) {
+            choco install redis-64 --version 3.0.503 -y
+          }            
+          #  New-Item C:\deps_installed.txt
+          # }
 
       - name: Install
         run: |
