@@ -64,6 +64,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'knox.auth.TokenAuthentication',
+        "ESSArch_Core.auth.jwt_auth.CookieJWTAuthentication",
         'ESSArch_Core.auth.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
@@ -77,6 +78,24 @@ REST_FRAMEWORK = {
 DRF_CACHED_PAGINATION_COUNT_TIME = 0
 DRF_DYNAMIC_FIELDS = {
     'SUPPRESS_CONTEXT_WARNING': True,
+}
+
+JWT_AUTH_COOKIE = {
+    "httponly": True,
+    "secure": True,
+    "samesite": "Lax",
+    "path": "/",
+    "domain": ".dev.essarch.org",
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "TOKEN_OBTAIN_SERIALIZER": "ESSArch_Core.auth.serializers.ESSArchTokenSerializer",
+    "SIGNING_KEY": "your-shared-secret",
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
 }
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
@@ -133,6 +152,7 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'knox',
     'ESSArch_Core.admin',
     'ESSArch_Core.access',
