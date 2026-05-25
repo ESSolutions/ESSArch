@@ -15,6 +15,13 @@ class ESSArchTestRunner(DiscoverRunner):
         return super().run_tests(*args, **kwargs)
 
     def setup_databases(self, **kwargs):
+        from django.conf import settings
+
+        # IMPORTANT: set BEFORE super()
+        if self.connection.vendor == "microsoft":
+            settings.MIGRATION_MODULES = {
+                "token_blacklist": None,
+            }
         dbs = super().setup_databases(**kwargs)
         if connection.vendor == 'microsoft':
             db_name = connection.settings_dict['NAME']

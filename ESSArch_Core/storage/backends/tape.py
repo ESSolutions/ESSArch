@@ -44,35 +44,37 @@ class TapeStorageBackend(BaseStorageBackend):
         else:
             io_lock_key = pickle.dumps(io_lock_key)
 
-        if not drive.is_locked():
-            if cache.add(drive.get_lock_key(), io_lock_key):
-                drive.last_change = timezone.now()
-                drive.save(update_fields=['last_change'])
-                logger.debug('Storage medium {} ({}) is now locked for request {}'.format(
-                    storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
-            else:
-                raise ValueError('Failed to set drivelock for Storage medium {} ({}) with request {}'.format(
-                    storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
-        else:
-            timeout_at = time.monotonic() + wait_timeout
-            while drive.is_locked():
-                drive_lock_key = pickle.loads(cache.get(drive.get_lock_key()))
-                logger.debug('Storage medium {} ({}) is already locked with {} and not requested {}'.format(
-                    storage_medium.medium_id, str(storage_medium.pk),
-                    drive_lock_key, pickle.loads(io_lock_key)))
-                if time.monotonic() > timeout_at:
-                    raise ValueError("Timeout waiting for drivelock for storage medium {} ({}) with \
-request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
-                time.sleep(1)
+        timeout_at = time.monotonic() + wait_timeout
 
+        while True:
+            # Try to acquire lock immediately
             if cache.add(drive.get_lock_key(), io_lock_key):
                 drive.last_change = timezone.now()
                 drive.save(update_fields=['last_change'])
                 logger.debug('Storage medium {} ({}) is now locked for request {}'.format(
                     storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
+                return
+
+            # Someone else holds the lock
+            raw_lock = cache.get(drive.get_lock_key())
+
+            if raw_lock is not None:
+                try:
+                    drive_lock_key = pickle.loads(raw_lock)
+                except Exception:
+                    drive_lock_key = '<invalid lock payload>'
             else:
-                raise ValueError('Failed to set drivelock for Storage medium {} ({}) with request {}'.format(
-                    storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
+                drive_lock_key = '<lock disappeared>'
+
+            logger.debug('Storage medium {} ({}) is already locked with {} and not requested {}'.format(
+                storage_medium.medium_id, str(storage_medium.pk),
+                drive_lock_key, pickle.loads(io_lock_key)))
+
+            if time.monotonic() > timeout_at:
+                raise ValueError(
+                    "Timeout waiting for drivelock for storage medium {} ({}) with request {}".format(
+                        storage_medium.medium_id, str(storage_medium.pk), pickle.loads(io_lock_key)))
+            time.sleep(1)
 
     @staticmethod
     def wait_for_media_transit(storage_medium, wait_timeout=10 * 60):

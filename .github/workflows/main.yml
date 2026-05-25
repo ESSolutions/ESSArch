@@ -256,11 +256,6 @@ jobs:
       - name: Test
         run: |
           start redis-server
-
-          python manage.py migrate token_blacklist 0007
-          python manage.py migrate token_blacklist 0008 --fake
-          python manage.py migrate          
-
           coverage run manage.py test --verbosity=2 --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
@@ -434,12 +429,6 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          if [[ "${{ matrix.db }}" == "mssql" ]]; then
-            python manage.py migrate token_blacklist 0007
-            python manage.py migrate token_blacklist 0008 --fake
-            python manage.py migrate
-          fi
-
           coverage run manage.py test --verbosity=2
       - name: Report code coverage
         run: |
