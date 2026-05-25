@@ -18,7 +18,7 @@ class ESSArchTestRunner(DiscoverRunner):
         from django.conf import settings
 
         # IMPORTANT: set BEFORE super()
-        if self.connection.vendor == "microsoft":
+        if connection.vendor == "microsoft":
             settings.MIGRATION_MODULES = {
                 "token_blacklist": None,
             }
