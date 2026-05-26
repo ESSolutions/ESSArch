@@ -58,6 +58,18 @@ EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMA
 # must be a path to a CA bundle to use.
 REQUESTS_VERIFY = env.bool('ESSARCH_REQUESTS_VERIFY', default=True)
 
+# Database
+env.DB_SCHEMES['mssql'] = 'mssql'
+try:
+    from local_essarch_settings import DATABASE_URL
+    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
+except ImportError:
+    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
+
+IS_MSSQL = DATABASES['default'].get('ENGINE') == 'mssql'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'ESSArch_Core.api.metadata.CustomMetadata',
     'DEFAULT_PAGINATION_CLASS': 'proxy_pagination.ProxyPagination',
@@ -97,6 +109,9 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
 }
+
+if IS_MSSQL:
+    SIMPLE_JWT["BLACKLIST_AFTER_ROTATION"] = False
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
 TUS_UPLOAD_CONFIG = {
@@ -180,6 +195,13 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
 ])
 INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
+if IS_MSSQL:
+    INSTALLED_APPS = [
+        app
+        for app in INSTALLED_APPS
+        if app != "rest_framework_simplejwt.token_blacklist"
+    ]
+
 try:
     import test_without_migrations  # noqa
 except ImportError:
@@ -255,16 +277,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
-
-# Database
-env.DB_SCHEMES['mssql'] = 'mssql'
-try:
-    from local_essarch_settings import DATABASE_URL
-    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
-except ImportError:
-    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
-        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cache
 REDIS_CLIENT_CLASS = env.str('ESSARCH_REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
