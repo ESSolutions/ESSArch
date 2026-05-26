@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 from copy import deepcopy
 from datetime import timedelta
@@ -46,6 +47,7 @@ ESSARCH_WORKFLOW_POLLERS_RUN_POLLER = False
 
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
+IS_TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
 EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
@@ -110,7 +112,7 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
 }
 
-if IS_MSSQL:
+if IS_MSSQL and IS_TESTING:
     SIMPLE_JWT["BLACKLIST_AFTER_ROTATION"] = False
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
@@ -195,7 +197,7 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
 ])
 INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
-if IS_MSSQL:
+if IS_MSSQL and IS_TESTING:
     INSTALLED_APPS = [
         app
         for app in INSTALLED_APPS
