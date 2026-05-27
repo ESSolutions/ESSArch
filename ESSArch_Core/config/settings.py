@@ -49,6 +49,17 @@ ESSARCH_WORKFLOW_POLLERS_RUN_POLLER = False
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 IS_TESTING = len(sys.argv) > 1 and sys.argv[1] == "test"
 
+env.DB_SCHEMES['mssql'] = 'mssql'
+
+try:
+    from local_essarch_settings import DATABASE_URL
+    default_db_config = env.db_url_config(DATABASE_URL)
+except ImportError:
+    default_db_config = env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))
+
+IS_MSSQL = default_db_config.get('ENGINE') == 'mssql'
+
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
 EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
 
@@ -136,7 +147,6 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework',
-    'rest_framework_simplejwt.token_blacklist',
     'knox',
     'ESSArch_Core.admin',
     'ESSArch_Core.access',
@@ -162,6 +172,9 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
 ])
+if not IS_MSSQL and not IS_TESTING:
+    INSTALLED_APPS.append('rest_framework_simplejwt.token_blacklist')
+
 INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
 AUTHENTICATION_BACKENDS = env.list('ESSARCH_AUTHENTICATION_BACKENDS', default=[
@@ -186,27 +199,9 @@ MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
 MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
 # Database
-env.DB_SCHEMES['mssql'] = 'mssql'
-try:
-    from local_essarch_settings import DATABASE_URL
-    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
-except ImportError:
-    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
-        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
+DATABASES = {'default': default_db_config}
 
-IS_MSSQL = 'mssql' in DATABASES['default'].get('ENGINE', '').lower()
-if not IS_MSSQL:
-    IS_MSSQL = 'pyodbc' in DATABASES['default'].get('ENGINE', '').lower()
-
-print(f'dbxxxx: {DATABASES['default'].get('ENGINE', '').lower()}, {IS_MSSQL}, {IS_TESTING}')
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-if IS_MSSQL and IS_TESTING:
-    INSTALLED_APPS = [
-        app
-        for app in INSTALLED_APPS
-        if app != "rest_framework_simplejwt.token_blacklist"
-    ]
 
 try:
     import test_without_migrations  # noqa
