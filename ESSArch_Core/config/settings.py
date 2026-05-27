@@ -194,7 +194,7 @@ except ImportError:
     DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
         'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
 
-IS_MSSQL = DATABASES['default'].get('ENGINE') == 'mssql'
+IS_MSSQL = 'mssql' in DATABASES['default'].get('ENGINE', '').lower()
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 if IS_MSSQL and IS_TESTING:
