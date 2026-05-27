@@ -51,6 +51,7 @@ from rest_framework_simplejwt.views import (
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.models import Group, Notification
 from ESSArch_Core.auth.serializers import (
+    ESSArchTokenSerializer,
     GroupDetailSerializer,
     GroupSerializer,
     LoginSerializer,
@@ -350,7 +351,33 @@ class CookieTokenRefreshView(TokenRefreshView):
         return response
 
 
-class TokenLogoutView(APIView):
+class CookieTokenObtainSSOCallbackView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = User.objects.all()
+
+    def get(self, request):
+        refresh = ESSArchTokenSerializer.get_token(request.user)
+
+        response = Response({}, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            key="accessToken",
+            value=str(refresh.access_token),
+            max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        response.set_cookie(
+            key="refreshToken",
+            value=str(refresh),
+            max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        return response
+
+
+class CookieTokenLogoutView(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
 
@@ -367,6 +394,13 @@ class TokenLogoutView(APIView):
                 token.blacklist()
             except Exception as e:
                 logger.warning(f"Token blacklist failed: {e}")
+
+        if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+            try:
+                if _get_subject_id(request.saml_session):
+                    saml2_logout().get(request)
+            except Exception:
+                logger.exception('Failed to logout using SAML, no active identity found')
 
         response = Response(
             {"detail": "Logged out"},
@@ -387,39 +421,3 @@ class TokenLogoutView(APIView):
         )
 
         return response
-
-
-@api_view(['GET'])
-def jwt_api_callback(request):
-    """
-    Generate JWT after SAML login.
-    """
-    user = request.user
-    if not user.is_authenticated:
-        return Response({"error": "Unauthenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-
-    refresh = RefreshToken.for_user(user)
-
-    response = Response(
-        {
-            # "access": str(refresh.access_token),
-            # "refresh": str(refresh)
-        },
-        status=status.HTTP_200_OK,
-    )
-
-    response.set_cookie(
-        key="accessToken",
-        value=str(refresh.access_token),
-        max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
-        **settings.JWT_AUTH_COOKIE,
-    )
-
-    response.set_cookie(
-        key="refreshToken",
-        value=str(refresh),
-        max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
-        **settings.JWT_AUTH_COOKIE,
-    )
-
-    return response

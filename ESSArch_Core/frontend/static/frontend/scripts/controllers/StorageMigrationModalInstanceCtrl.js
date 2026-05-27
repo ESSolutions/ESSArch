@@ -19,34 +19,61 @@ export default class StorageMigrationModalInstanceCtrl {
     let methods = [];
     let export_path = '';
     $ctrl.migration.export_path = '';
+    let tempModel = {}; // Formly model for checkbox visibility
+
     $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null && $ctrl.data.ip != null) {
         $ctrl.data.ips = [$ctrl.data.ip];
       }
+
       $ctrl.pageLoading = true;
+
+      // Fetch paths
       $http.get(appConfig.djangoUrl + 'paths/', {params: {pager: 'none'}}).then((response) => {
-        $ctrl.pageLoading = false;
         let temp = '';
         response.data.forEach((x) => {
-          if (x.entity === 'temp') {
-            temp = x.value;
-          } else if (x.entity === 'export') {
-            export_path = x.value;
-          }
+          if (x.entity === 'temp') temp = x.value;
+          else if (x.entity === 'export') export_path = x.value;
         });
         $ctrl.migration.temp_path = temp;
         export_path = export_path || temp;
         $ctrl.migration.policy = $ctrl.data.policy;
       });
 
-      $ctrl.migration.storage_methods = [];
+      // Fetch storage methods
       let params = {policy: $ctrl.data.policy, page: 1, pager: 'none', has_enabled_target: true};
       $http.get(appConfig.djangoUrl + 'storage-methods/', {params}).then((response) => {
         methods = parseMethods(response.data);
-        $ctrl.migration.storage_methods = methods.map((x) => {
-          return x.id;
-        });
+        $ctrl.migration.storage_methods = methods.map((x) => x.id);
       });
+
+      // -----------------------------
+      // Fetch default checkbox parameters
+      // -----------------------------
+      $http.get(appConfig.djangoUrl + 'parameters/', {params: {pager: 'none'}}).then((response) => {
+        let migrate_all_default = true; // fallback default
+        let export_copy_default = false; // fallback default
+
+        response.data.forEach((x) => {
+          if (x.entity === 'migrate_all_default') migrate_all_default = x.value === 'true';
+          if (x.entity === 'export_copy_default') export_copy_default = x.value === 'true';
+        });
+
+        // Apply defaults to tempModel
+        tempModel.migrate_all = migrate_all_default;
+        tempModel.export_copy = export_copy_default;
+
+        // Preselect storage methods if migrate_all_default
+        if (migrate_all_default && methods.length > 0) {
+          $ctrl.migration.storage_methods = methods.map((x) => x.id);
+        }
+
+        // Set export path if export_copy_default
+        if (export_copy_default && $ctrl.migration.export_path.length === 0) {
+          $ctrl.migration.export_path = export_path;
+        }
+      });
+
       EditMode.enable();
     };
 
@@ -55,27 +82,23 @@ export default class StorageMigrationModalInstanceCtrl {
       const targetTranslation = $translate.instant('STORAGE_TARGET');
 
       return methods.map((x) => {
-        let temp = x.storage_method_target_relations.filter((relation) => {
-          return relation.status === 1;
-        });
+        let temp = x.storage_method_target_relations.filter((relation) => relation.status === 1);
         let enabledTarget = {name: null, id: null};
-        if (temp.length > 0) {
-          enabledTarget = temp[0];
-        }
+        if (temp.length > 0) enabledTarget = temp[0];
+
         const methodWithTarget = `
-        <div class="method-target-result-item">
-          <b>${methodTranslation}:</b> ${x.name}<br />
-          <b>${targetTranslation}:</b> ${enabledTarget.name}
-        </div>
+          <div class="method-target-result-item">
+            <b>${methodTranslation}:</b> ${x.name}<br />
+            <b>${targetTranslation}:</b> ${enabledTarget.name}
+          </div>
         `;
+
         return {
           methodWithTarget,
           id: enabledTarget.storage_method,
         };
       });
     };
-
-    let tempModel = {};
 
     $ctrl.fields = [
       {
@@ -88,18 +111,15 @@ export default class StorageMigrationModalInstanceCtrl {
       {
         type: 'checkbox',
         key: 'migrate_all',
+        model: tempModel,
         templateOptions: {
           label: $translate.instant('MIGRATE_ALL_METHODS'),
         },
-        defaultValue: true,
-        model: tempModel,
         expressionProperties: {
           'templateOptions.onChange': function ($viewValue, $modelValue, scope) {
-            if ($modelValue === true && $ctrl.migration.storage_methods.length === 0) {
-              $ctrl.migration.storage_methods = methods.map((x) => {
-                return x.id;
-              });
-            } else if ($modelValue === false && $ctrl.migration.storage_methods.length !== 0) {
+            if ($modelValue && $ctrl.migration.storage_methods.length === 0) {
+              $ctrl.migration.storage_methods = methods.map((x) => x.id);
+            } else if (!$modelValue && $ctrl.migration.storage_methods.length !== 0) {
               $ctrl.migration.storage_methods = [];
             }
           },
@@ -111,30 +131,27 @@ export default class StorageMigrationModalInstanceCtrl {
         templateOptions: {
           label: $translate.instant('STORAGE_METHODS'),
           labelProp: 'methodWithTarget',
-          multiple: true,
           valueProp: 'id',
+          multiple: true,
           optionsFunction: function () {
             return methods;
           },
           appendToBody: false,
         },
-        hideExpression: ($viewValue, $modelValue, scope) => {
-          return tempModel.migrate_all === false;
-        },
+        hideExpression: () => tempModel.migrate_all === false,
       },
       {
         type: 'checkbox',
         key: 'export_copy',
+        model: tempModel,
         templateOptions: {
           label: $translate.instant('EXPORT_COPY'),
         },
-        defaultValue: false,
-        model: tempModel,
         expressionProperties: {
           'templateOptions.onChange': function ($viewValue, $modelValue, scope) {
-            if ($modelValue === true && $ctrl.migration.export_path.length === 0) {
+            if ($modelValue && $ctrl.migration.export_path.length === 0) {
               $ctrl.migration.export_path = export_path;
-            } else if ($modelValue === false && $ctrl.migration.export_path.length !== 0) {
+            } else if (!$modelValue && $ctrl.migration.export_path.length !== 0) {
               $ctrl.migration.export_path = '';
             }
           },
@@ -146,9 +163,7 @@ export default class StorageMigrationModalInstanceCtrl {
         templateOptions: {
           label: $translate.instant('EXPORTPATH'),
         },
-        hideExpression: ($viewValue, $modelValue, scope) => {
-          return tempModel.export_copy === false;
-        },
+        hideExpression: () => tempModel.export_copy === false,
       },
       {
         type: 'input',
@@ -164,26 +179,24 @@ export default class StorageMigrationModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
+
       let req_data = {};
       if ($ctrl.data.ips) {
         req_data = angular.extend(
           {
-            information_packages: $ctrl.data.ips.map((x) => {
-              return x.id;
-            }),
+            information_packages: $ctrl.data.ips.map((x) => x.id),
           },
           $ctrl.migration
         );
       } else if ($ctrl.data.mediums) {
         req_data = angular.extend(
           {
-            storage_mediums: $ctrl.data.mediums.map((x) => {
-              return x.id;
-            }),
+            storage_mediums: $ctrl.data.mediums.map((x) => x.id),
           },
           $ctrl.migration
         );
       }
+
       $ctrl.migrating = true;
       return $http({
         method: 'POST',

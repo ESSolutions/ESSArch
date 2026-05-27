@@ -60,18 +60,6 @@ EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMA
 # must be a path to a CA bundle to use.
 REQUESTS_VERIFY = env.bool('ESSARCH_REQUESTS_VERIFY', default=True)
 
-# Database
-env.DB_SCHEMES['mssql'] = 'mssql'
-try:
-    from local_essarch_settings import DATABASE_URL
-    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
-except ImportError:
-    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
-        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
-
-IS_MSSQL = DATABASES['default'].get('ENGINE') == 'mssql'
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
 REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'ESSArch_Core.api.metadata.CustomMetadata',
     'DEFAULT_PAGINATION_CLASS': 'proxy_pagination.ProxyPagination',
@@ -93,27 +81,6 @@ DRF_CACHED_PAGINATION_COUNT_TIME = 0
 DRF_DYNAMIC_FIELDS = {
     'SUPPRESS_CONTEXT_WARNING': True,
 }
-
-JWT_AUTH_COOKIE = {
-    "httponly": True,
-    "secure": True,
-    "samesite": "Lax",
-    "path": "/",
-    "domain": ".dev.essarch.org",
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "TOKEN_OBTAIN_SERIALIZER": "ESSArch_Core.auth.serializers.ESSArchTokenSerializer",
-    "SIGNING_KEY": "your-shared-secret",
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-}
-
-if IS_MSSQL and IS_TESTING:
-    SIMPLE_JWT["BLACKLIST_AFTER_ROTATION"] = False
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
 TUS_UPLOAD_CONFIG = {
@@ -197,6 +164,39 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
 ])
 INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
+AUTHENTICATION_BACKENDS = env.list('ESSARCH_AUTHENTICATION_BACKENDS', default=[
+    'django.contrib.auth.backends.ModelBackend',
+    'ESSArch_Core.auth.backends.GroupRoleBackend',
+    'guardian.backends.ObjectPermissionBackend',
+])
+AUTHENTICATION_BACKENDS.extend(env.list('ESSARCH_AUTHENTICATION_BACKENDS_EXTRA', default=[]))
+
+MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+])
+MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
+
+# Database
+env.DB_SCHEMES['mssql'] = 'mssql'
+try:
+    from local_essarch_settings import DATABASE_URL
+    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
+except ImportError:
+    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
+
+IS_MSSQL = DATABASES['default'].get('ENGINE') == 'mssql'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 if IS_MSSQL and IS_TESTING:
     INSTALLED_APPS = [
         app
@@ -211,12 +211,26 @@ except ImportError:
 else:
     INSTALLED_APPS.append('test_without_migrations')
 
-AUTHENTICATION_BACKENDS = env.list('ESSARCH_AUTHENTICATION_BACKENDS', default=[
-    'django.contrib.auth.backends.ModelBackend',
-    'ESSArch_Core.auth.backends.GroupRoleBackend',
-    'guardian.backends.ObjectPermissionBackend',
-])
-AUTHENTICATION_BACKENDS.extend(env.list('ESSARCH_AUTHENTICATION_BACKENDS_EXTRA', default=[]))
+JWT_AUTH_COOKIE = {
+    "httponly": True,
+    "secure": True,
+    "samesite": "Lax",
+    "path": "/",
+    # "domain": ".dev.essarch.org",
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "TOKEN_OBTAIN_SERIALIZER": "ESSArch_Core.auth.serializers.ESSArchTokenSerializer",
+    "SIGNING_KEY": "your-shared-secret",
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+if IS_MSSQL and IS_TESTING:
+    SIMPLE_JWT["BLACKLIST_AFTER_ROTATION"] = False
 
 GROUPS_MANAGER = {
     'AUTH_MODELS_SYNC': True,
@@ -244,20 +258,6 @@ CHANNEL_LAYERS = {
 ASGI_APPLICATION = 'ESSArch_Core.routing.application'
 
 SITE_ID = 1
-
-MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-])
-MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
 ROOT_URLCONF = 'ESSArch_Core.config.urls'
 
