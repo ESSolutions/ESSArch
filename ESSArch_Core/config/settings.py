@@ -195,6 +195,10 @@ except ImportError:
         'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
 
 IS_MSSQL = 'mssql' in DATABASES['default'].get('ENGINE', '').lower()
+if not IS_MSSQL:
+    IS_MSSQL = 'pyodbc' in DATABASES['default'].get('ENGINE', '').lower()
+
+print(f'dbxxxx: {DATABASES['default'].get('ENGINE', '').lower()}, {IS_MSSQL}, {IS_TESTING}')
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 if IS_MSSQL and IS_TESTING:
