@@ -60,6 +60,10 @@ except ImportError:
 
 IS_MSSQL = default_db_config.get('ENGINE') == 'mssql'
 
+# Database
+DATABASES = {'default': default_db_config}
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
 EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
 
@@ -197,11 +201,6 @@ MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
     'allauth.account.middleware.AccountMiddleware',
 ])
 MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
-
-# Database
-DATABASES = {'default': default_db_config}
-
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 try:
     import test_without_migrations  # noqa
@@ -633,6 +632,15 @@ OLD_PASSWORD_FIELD_ENABLED = True
 
 try:
     from local_essarch_settings import *  # noqa isort:skip
+    INSTALLED_APPS.extend(locals().get('LOCAL_INSTALLED_APPS', []))
+    AUTHENTICATION_BACKENDS.extend(
+        locals().get('LOCAL_AUTHENTICATION_BACKENDS', [])
+    )
+    # AUTHENTICATION_BACKENDS = (
+    #     locals().get('LOCAL_AUTHENTICATION_BACKENDS', [])
+    #     + AUTHENTICATION_BACKENDS
+    # )
+    MIDDLEWARE.extend(locals().get('LOCAL_MIDDLEWARE', []))
 except ImportError as e:
     if e.name == 'local_essarch_settings':
         raise ImportError('No settings file found, create one by running `essarch settings generate`')

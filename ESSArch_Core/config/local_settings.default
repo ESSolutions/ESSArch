@@ -1,12 +1,9 @@
 import os
 
 from ESSArch_Core.config.settings import (
-    AUTHENTICATION_BACKENDS,
     CONFIG_DIR,
     ESSARCH_DIR,
-    INSTALLED_APPS,
     LOGGING_DIR,
-    MIDDLEWARE,
     env,
 )
 
