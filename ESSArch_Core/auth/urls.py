@@ -8,11 +8,22 @@ from django.urls import re_path
 from knox import views as knox_views
 
 from ESSArch_Core.auth.views import (
+    CookieTokenLogoutView,
+    CookieTokenObtainPairView,
+    CookieTokenObtainSSOCallbackView,
+    CookieTokenRefreshView,
     LoginView,
     LogoutView,
     TokenLoginView,
     login_services,
 )
+
+# from rest_framework_simplejwt.views import (
+#     TokenObtainPairView,
+#     TokenRefreshView,
+#     TokenVerifyView,
+# )
+
 
 urlpatterns = [
     # URLs that do not require a session or valid token
@@ -29,4 +40,14 @@ urlpatterns = [
     re_path(r'^token_login/$', TokenLoginView.as_view(), name='knox_login'),
     re_path(r'^token_logout/$', knox_views.LogoutView.as_view(), name='knox_logout'),
     re_path(r'^token_logoutall/$', knox_views.LogoutAllView.as_view(), name='knox_logoutall'),
+
+    # JWT Token
+    # re_path(r'^token/$', TokenObtainPairView.as_view(), name='jwt_token_obtain_pair'),
+    re_path(r'^token/$', CookieTokenObtainPairView.as_view(), name='jwt_token_obtain_pair'),
+    # re_path(r'^token/refresh/$', TokenRefreshView.as_view(), name='jwt_token_refresh'),
+    re_path(r'^token/refresh/$', CookieTokenRefreshView.as_view(), name='jwt_token_refresh'),
+    # re_path(r'^token/verify/$', TokenVerifyView.as_view(), name='jwt_token_verify'),
+    re_path(r'^token/logout/$', CookieTokenLogoutView.as_view(), name='jwt_token_logout'),
+    re_path(r'^saml2/jwt-api-callback/$', CookieTokenObtainSSOCallbackView.as_view(),
+            name='jwt_token_obtain_sso_callback'),
 ]

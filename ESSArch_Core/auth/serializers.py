@@ -31,6 +31,7 @@ from django.contrib.auth.models import ContentType, Permission
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
@@ -283,3 +284,16 @@ class LoginSerializer(rest_auth_LoginSerializer):
 
         attrs['user'] = user
         return attrs
+
+
+class ESSArchTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        token["username"] = user.username
+        token["first_name"] = user.first_name
+        token["last_name"] = user.last_name
+        token["email"] = user.email
+
+        return token

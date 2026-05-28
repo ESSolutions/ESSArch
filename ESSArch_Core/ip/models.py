@@ -344,7 +344,7 @@ class InformationPackageQuerySet(OrganizationQuerySet):
                 storage_method__storage_policies=OuterRef('submission_agreement__policy'),
             )
 
-        return self.filter(
+        qs = self.filter(
             Q(
                 Q(Exists(method_target_rel_with_migrate_target_with_ip)) &
                 Q(Exists(method_target_rel_with_enabled_target_without_ip)) |
@@ -352,6 +352,11 @@ class InformationPackageQuerySet(OrganizationQuerySet):
             ),
             archived=True,
         ).exclude(storage=None)
+
+        if not include_inactive_ips:
+            qs = qs.filter(active=True)
+
+        return qs
 
 
 class InformationPackageManager(OrganizationManager):

@@ -2722,8 +2722,13 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 label=parsed.get('label'),
                 package_mets_path=xmlfile,
             )
-            user_perms = perms.pop('owner', [])
+
             member = Member.objects.get(django_user=request.user)
+            user_perms = perms.pop('owner', [])
+
+            organization.assign_object(ip, custom_permissions=perms)
+            organization.add_object(ip)
+
             for perm in user_perms:
                 perm_name = get_permission_name(perm, ip)
                 assign_perm(perm_name, member.django_user, ip)

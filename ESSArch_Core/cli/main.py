@@ -45,6 +45,31 @@ def _loaddata(*fixture_labels):
 def migrate(plan):
     click.secho('Applying database migrations:', fg='green')
 
+    from django.db import connection
+
+    # MSSQL workaround for simplejwt blacklist migration
+    if connection.vendor == 'microsoft' and not plan:
+        try:
+            dj_call_command(
+                'migrate',
+                'token_blacklist',
+                '0007',
+                interactive=False,
+                verbosity=1,
+            )
+
+            dj_call_command(
+                'migrate',
+                'token_blacklist',
+                '0008',
+                fake=True,
+                interactive=False,
+                verbosity=1,
+            )
+        except Exception:
+            # Ignore if already migrated/faked
+            pass
+
     dj_call_command(
         'migrate',
         interactive=False,

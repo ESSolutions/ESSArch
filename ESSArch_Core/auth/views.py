@@ -40,12 +40,18 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.models import Group, Notification
 from ESSArch_Core.auth.serializers import (
+    ESSArchTokenSerializer,
     GroupDetailSerializer,
     GroupSerializer,
     LoginSerializer,
@@ -134,7 +140,7 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
 
 class MeView(RetrieveUpdateAPIView):
     serializer_class = UserLoggedInSerializer
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
@@ -156,7 +162,7 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,)
 
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('seen',)
@@ -235,3 +241,183 @@ class LogoutView(rest_auth_LogoutView):
         self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
         return HttpResponseRedirect(next_page)
+
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        logger = logging.getLogger('essarch.auth')
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            if not serializer.is_valid():
+                logger.warning(serializer.errors)
+
+                return Response(
+                    {"detail": "Invalid credentials"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+        except Exception as e:
+            logger.warning(e)
+            return Response(
+                {"detail": "Invalid refresh token"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        access = serializer.validated_data["access"]
+        refresh = serializer.validated_data["refresh"]
+
+        response = Response(
+            {
+                # "access": access,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        response.set_cookie(
+            key="accessToken",
+            value=str(access),
+            max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        response.set_cookie(
+            key="refreshToken",
+            value=str(refresh),
+            max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        return response
+
+
+class CookieTokenRefreshView(TokenRefreshView):
+    authentication_classes = []
+
+    def post(self, request, *args, **kwargs):
+        logger = logging.getLogger('essarch.auth')
+        refresh = request.COOKIES.get("refreshToken")
+
+        if not refresh:
+            return Response(
+                {"detail": "Refresh token missing"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer = self.get_serializer(data={"refresh": refresh})
+
+        try:
+            if not serializer.is_valid():
+                logger.warning(serializer.errors)
+
+                return Response(
+                    {"detail": "Invalid credentials"},
+                    status=status.HTTP_401_UNAUTHORIZED,
+                )
+        except Exception as e:
+            logger.warning(e)
+            return Response(
+                {"detail": "Invalid refresh token"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        access = serializer.validated_data["access"]
+
+        response = Response(
+            {
+                # "access": access,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+        new_refresh = serializer.validated_data.get("refresh")
+
+        response.set_cookie(
+            key="accessToken",
+            value=str(access),
+            max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        if new_refresh:
+            response.set_cookie(
+                key="refreshToken",
+                value=str(new_refresh),
+                max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+                **settings.JWT_AUTH_COOKIE,
+            )
+
+        return response
+
+
+class CookieTokenObtainSSOCallbackView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = User.objects.all()
+
+    def get(self, request):
+        refresh = ESSArchTokenSerializer.get_token(request.user)
+
+        response = Response({}, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            key="accessToken",
+            value=str(refresh.access_token),
+            max_age=int(settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        response.set_cookie(
+            key="refreshToken",
+            value=str(refresh),
+            max_age=int(settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds()),
+            **settings.JWT_AUTH_COOKIE,
+        )
+
+        return response
+
+
+class CookieTokenLogoutView(APIView):
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        logger = logging.getLogger('essarch.auth')
+        refresh_token = request.COOKIES.get("refreshToken")
+
+        if not refresh_token:
+            refresh_token = request.data.get("refresh")
+
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception as e:
+                logger.warning(f"Token blacklist failed: {e}")
+
+        if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+            try:
+                if _get_subject_id(request.saml_session):
+                    saml2_logout().get(request)
+            except Exception:
+                logger.exception('Failed to logout using SAML, no active identity found')
+
+        response = Response(
+            {"detail": "Logged out"},
+            status=status.HTTP_200_OK,
+        )
+
+        response.delete_cookie(
+            key="refreshToken",
+            path=settings.JWT_AUTH_COOKIE.get("path", "/"),
+            domain=settings.JWT_AUTH_COOKIE.get("domain"),
+            samesite=settings.JWT_AUTH_COOKIE.get("samesite"),
+        )
+        response.delete_cookie(
+            key="accessToken",
+            path=settings.JWT_AUTH_COOKIE.get("path", "/"),
+            domain=settings.JWT_AUTH_COOKIE.get("domain"),
+            samesite=settings.JWT_AUTH_COOKIE.get("samesite"),
+        )
+
+        return response

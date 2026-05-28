@@ -86,15 +86,16 @@ def ReceiveDir(self):
         return os.path.join(workarea_user, ip.object_identifier_value)
 
     ip = InformationPackage.objects.get(pk=self.ip)
+    user = User.objects.get(pk=self.responsible)
     objpath = ip.object_path
     workarea_path = _get_workarea_path()
 
     shutil.copytree(objpath, workarea_path)
     ip.object_path = Path(workarea_path).as_posix()
     ip.save()
-    Workarea.objects.create(ip=ip, user_id=self.responsible, type=Workarea.INGEST, read_only=False)
+    Workarea.objects.create(ip=ip, user=user, type=Workarea.INGEST, read_only=False)
 
-    self.create_success_event("Received IP")
+    self.create_success_event("Received IP to workspace")
 
 
 @app.task(bind=True, event_type=20100)
