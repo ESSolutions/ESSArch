@@ -124,7 +124,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'retried',
             'responsible', 'hidden', 'args', 'params', 'information_package',
-            'information_package_str', 'eager',
+            'information_package_str', 'eager', 'queue',
         )
         read_only_fields = (
             'time_created', 'time_started', 'time_done', 'retried',
@@ -234,7 +234,7 @@ class ProcessStepSerializer(serializers.ModelSerializer):
             'url', 'id', 'name', 'label', 'result', 'part_root', 'user', 'parallel',
             'run_state', 'status', 'progress', 'time_created', 'parent',
             'parent_pos', 'information_package', 'information_package_str',
-            'flow_type', 'step_position', 'responsible',
+            'flow_type', 'step_position', 'responsible', 'queue',
         )
         read_only_fields = (
             'status', 'progress', 'time_created', 'time_done',

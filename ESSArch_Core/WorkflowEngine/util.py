@@ -60,6 +60,7 @@ def _create_on_error_tasks(parent, errors, ip=None, responsible=None, eager=Fals
             processstep_pos=on_error_idx,
             status=status,
             progress=progress,
+            queue=on_error.get('queue') or parent.queue
         )
 
 
@@ -89,6 +90,7 @@ def _create_step(parent, flow, ip, responsible, context=None):
                 information_package=ip,
                 context=context,
                 responsible=responsible,
+                queue=flow_entry.get('queue') or parent.queue,
             )
 
             on_error_tasks = list(_create_on_error_tasks(
@@ -111,7 +113,7 @@ def _create_step(parent, flow, ip, responsible, context=None):
             result_params = flow_entry.get('result_params', {})
             task = ProcessTask.objects.create(
                 name=name,
-                queue=flow_entry.get('queue', None),
+                queue=flow_entry.get('queue') or parent.queue,
                 reference=flow_entry.get('reference', None),
                 label=flow_entry.get('label'),
                 args=args,
@@ -157,6 +159,14 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
 
     logger = logging.getLogger('essarch.workflow')
 
+    queue = None
+
+    if workflow_spec:
+        queue = workflow_spec[0].get('queue')
+
+    if queue is None:
+        queue = context.get('WORKFLOW_QUEUE', 'celery')
+
     with cache.lock('create_workflow_lock', timeout=300):
         try:
             for attempt in Retrying(stop=stop_after_delay(30),
@@ -174,7 +184,7 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
                                 root_step = ProcessStep(
                                     name=name, eager=eager, information_package=ip, context=context,
                                     responsible=responsible, label=label, part_root=part_root,
-                                    run_state=run_state)
+                                    run_state=run_state, queue=queue)
                                 root_step.parent = top_root_step
                                 root_step.parent_pos = top_root_step.child_steps.count() + 1
                                 root_step.save()
@@ -182,7 +192,7 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
                                 root_step = ProcessStep.objects.create(
                                     name=name, eager=eager, information_package=ip, context=context,
                                     responsible=responsible, label=label, part_root=part_root,
-                                    run_state=run_state)
+                                    run_state=run_state, queue=queue)
 
                             # Create on_error tasks
                             on_error_tasks = list(_create_on_error_tasks(

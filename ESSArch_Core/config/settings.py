@@ -596,8 +596,15 @@ CELERY_TASK_REMOTE_TRACEBACKS = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
-ESSARCH_MAX_RUNNING_STEPS = 10
 ESSARCH_RUN_SINGLE_ROOT_STEP_IF_RUNNING_PART_ROOT_STEP = True
+ESSARCH_STEP_QUEUES = {
+    'celery': {
+        'max_running_steps': 10,
+    },
+    'poller': {
+        'max_running_steps': 10,
+    }
+}
 
 CELERY_BEAT_SCHEDULE = {
     'RunWorkflowPollers-every-60-seconds': {

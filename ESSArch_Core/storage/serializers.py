@@ -494,7 +494,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                     media_migrate_workflow_step = ProcessStep.objects.create(
                         name='Migrate Storage Medium', eager=False, information_package=None, context={},
                         responsible=user, label='Migrate Storage Medium {}'.format(medium_id),
-                        part_root=None, run_state='')
+                        part_root=None, run_state='', queue='celery')
 
                     t = ProcessTask.objects.create(
                         name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
@@ -533,7 +533,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                     media_migrate_workflow_step = ProcessStep.objects.create(
                         name='Migrate Storage Medium', eager=False, information_package=None, context={},
                         responsible=user, label='Migrate Storage Medium {}'.format(StorageMedium_obj.medium_id),
-                        part_root=None, run_state='')
+                        part_root=None, run_state='', queue='celery')
 
                     t = ProcessTask.objects.create(
                         name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
