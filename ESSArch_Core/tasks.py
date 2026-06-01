@@ -823,9 +823,11 @@ def RunWorkflowPollers(self):
             backend = get_backend(name)
             poll_path = poller['path']
             poll_sa = poller.get('sa')
+            poll_queue = poller.get('queue', 'poller')
             context = {
                 'WORKFLOW_POLLER': name,
-                'WORKFLOW_POLL_PATH': poll_path
+                'WORKFLOW_POLL_PATH': poll_path,
+                'WORKFLOW_QUEUE': poll_queue
             }
             for ip in backend.poll(poll_path, poll_sa):
                 profile = ip.submission_agreement.profile_workflow

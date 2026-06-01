@@ -113,7 +113,7 @@ class Process(models.Model):
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255, db_index=True)
     label = models.CharField(max_length=255, blank=True)
-    queue = models.CharField(max_length=255, blank=True, null=True, default=None)
+    queue = models.CharField(max_length=255, blank=True, null=True, default='celery')
     hidden = models.BooleanField(null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)

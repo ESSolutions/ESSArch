@@ -1051,6 +1051,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             label=mock.ANY,
             part_root=mock.ANY,
             run_state=mock.ANY,
+            queue=mock.ANY,
         ))
         for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
             # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
@@ -1058,19 +1059,19 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             #                        run_state=mock.ANY))
             calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
 
         mock_task.assert_has_calls(calls)
 
@@ -1120,6 +1121,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             label=mock.ANY,
             part_root=mock.ANY,
             run_state=mock.ANY,
+            queue=mock.ANY,
         ))
         for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
             # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
@@ -1127,19 +1129,19 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             #                        run_state=mock.ANY))
             calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
             calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
-                                   responsible=mock.ANY))
+                                   responsible=mock.ANY, queue=mock.ANY))
 
         mock_task.assert_has_calls(calls)
 
