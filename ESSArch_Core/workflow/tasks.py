@@ -521,102 +521,77 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
 
     cache_running_key = f'running_process_steps_{queue_name}'
 
-    #
-    # Handle workflows already running
-    #
+    # Count all active steps
+    running_count = ProcessStep.objects.filter(
+        parent=None,
+        queue=queue_name,
+        run_state='STARTED',
+    ).count()
 
+    logger.debug('Initial running_count=%s [queue=%s]', running_count, queue_name)
+    cache.set(cache_running_key, running_count)
+
+    #
+    # 1. Handle started root steps with part_root children
+    #
+    for root_step in ProcessStep.objects.filter(parent=None, queue=queue_name, run_state='STARTED'):
+        part_root_children = root_step.get_children().filter(part_root=True)
+
+        if part_root_children.count():
+            logger.debug('root_step has part_root childs, set running_count=0')
+            running_count = 0
+            cache.set(cache_running_key, running_count)
+
+        # Mark completed children
+        for child in part_root_children.filter(run_state='STARTED'):
+            if child.status == 'SUCCESS':
+                child.run_state = 'SUCCESS'
+                child.save(update_fields=['run_state'])
+                # running_count -= 1
+                # cache.set(cache_running_key, running_count)
+                logger.info('Marked child %s %s SUCCESS [queue=%s]', child, child.information_package, queue_name)
+
+        # Count FAILED but still STARTED children
+        failed_started_count = 0
+        for child in part_root_children.filter(run_state='STARTED'):
+            if child.status == 'FAILURE':
+                failed_started_count += 1
+            else:
+                running_count += 1
+
+        if failed_started_count > 0:
+            logger.info(
+                'Queue %s has %s FAILED children, cannot start more children"',
+                queue_name,
+                failed_started_count
+            )
+            break
+        # running_count += failed_started_count
+        cache.set(cache_running_key, running_count)
+
+        # Start pending part_root children of STARTED roots
+        pending_children = part_root_children.filter(run_state='PENDING')
+
+        for child in pending_children:
+            if cache.get(cache_running_key) >= max_running_steps:
+                logger.info("Queue %s full (%s/%s), cannot start more children",
+                            queue_name, cache.get(cache_running_key), max_running_steps)
+                break
+
+            logger.info("Starting child step %s %s [queue=%s]", child, child.information_package, queue_name)
+            child.run()
+            child.run_state = 'STARTED'
+            child.save(update_fields=['run_state'])
+            cache.incr(cache_running_key)
+
+    #
+    # 2. Mark root workflow complete
+    #
     for root_step in ProcessStep.objects.filter(
         parent=None,
         queue=queue_name,
         run_state='STARTED',
     ):
-
-        #
-        # Root workflow with part_root children
-        #
-
-        if (
-            root_step.get_children().filter(part_root=True).exists() and
-            root_step.status not in [
-                celery_states.FAILURE,
-                celery_states.REVOKED,
-            ]
-        ):
-
-            logger.info(
-                'root_step %s (STARTED) has part_root steps [queue=%s]',
-                root_step,
-                queue_name,
-            )
-
-            #
-            # Mark completed part_root steps
-            #
-
-            for part_root_step in root_step.get_children().filter(
-                part_root=True,
-                run_state='STARTED',
-            ):
-
-                if part_root_step.status == celery_states.SUCCESS:
-
-                    logger.info(
-                        'part_root_step %s SUCCESS [queue=%s]',
-                        part_root_step,
-                        queue_name,
-                    )
-
-                    part_root_step.run_state = 'SUCCESS'
-                    part_root_step.save(update_fields=['run_state'])
-
-            #
-            # Start new part_root steps if capacity exists
-            #
-
-            running_count = ProcessStep.objects.filter(
-                queue=queue_name,
-                run_state='STARTED',
-            ).count()
-
-            cache.set(cache_running_key, running_count)
-
-            for part_root_step in root_step.get_children().filter(
-                part_root=True,
-                run_state='PENDING',
-            ):
-
-                if (
-                    part_root_step.status == celery_states.PENDING and
-                    cache.get(cache_running_key) < max_running_steps
-                ):
-
-                    logger.info(
-                        'Starting part_root_step %s [queue=%s]',
-                        part_root_step,
-                        queue_name,
-                    )
-
-                    part_root_step.run()
-
-                    part_root_step.run_state = 'STARTED'
-                    part_root_step.save(update_fields=['run_state'])
-
-                    cache.incr(cache_running_key)
-
-                else:
-
-                    logger.info(
-                        'Queue %s full (%s/%s)',
-                        queue_name,
-                        cache.get(cache_running_key),
-                        max_running_steps,
-                    )
-
-                    break
-
-        #
-        # Mark root workflow complete
-        #
 
         if (
             not root_step.get_children()
@@ -625,7 +600,6 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
             .exists() and
             root_step.status == celery_states.SUCCESS
         ):
-
             logger.info(
                 'root_step %s SUCCESS [queue=%s]',
                 root_step,
@@ -636,10 +610,10 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
             root_step.save(update_fields=['run_state'])
 
     #
-    # Recalculate running count
+    # 3. Recalculate running count
     #
-
     running_count = ProcessStep.objects.filter(
+        parent=None,
         queue=queue_name,
         run_state='STARTED',
     ).count()
@@ -647,9 +621,8 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
     cache.set(cache_running_key, running_count)
 
     #
-    # Start pending root workflows
+    # 4. Start pending root workflows
     #
-
     pending_root_steps = ProcessStep.objects.filter(
         parent=None,
         queue=queue_name,
@@ -658,27 +631,18 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
 
     for root_step in pending_root_steps:
 
-        if cache.get(cache_running_key) >= max_running_steps:
+        current_running = cache.get(cache_running_key) or 0
 
+        if current_running >= max_running_steps:
             logger.info(
                 'Queue %s full (%s/%s)',
                 queue_name,
-                cache.get(cache_running_key),
+                current_running,
                 max_running_steps,
             )
-
             break
 
-        #
-        # Root workflow contains part_root lanes
-        #
-
         if root_step.get_children().filter(part_root=True).exists():
-
-            #
-            # Preserve existing behaviour:
-            # only one root workflow with active part_root execution
-            #
 
             if (
                 getattr(
@@ -693,12 +657,10 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
                     child_steps__run_state__in=['STARTED', 'PENDING'],
                 ).exists()
             ):
-
                 logger.info(
                     'Queue %s already has active root workflow with part_root steps',
                     queue_name,
                 )
-
                 continue
 
             logger.info(
@@ -710,16 +672,19 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
             for part_root_step in root_step.get_children().filter(
                 part_root=True,
                 run_state='PENDING',
-            ):
+            ).order_by('time_created'):
 
-                if (
-                    part_root_step.status == celery_states.PENDING and
-                    cache.get(cache_running_key) < max_running_steps
-                ):
+                current_running = cache.get(cache_running_key) or 0
+
+                if current_running >= max_running_steps:
+                    break
+
+                if part_root_step.status == celery_states.PENDING:
 
                     logger.info(
-                        'Starting part_root_step %s [queue=%s]',
+                        'Starting part_root_step %s %s [queue=%s]',
                         part_root_step,
+                        part_root_step.information_package,
                         queue_name,
                     )
 
@@ -730,16 +695,12 @@ def _poll_workflow_queue(queue_name, max_running_steps, logger):
 
                     cache.incr(cache_running_key)
 
-                else:
-                    break
-
             if (
                 root_step.get_children()
                 .filter(part_root=True, run_state='STARTED')
                 .exists() and
                 root_step.run_state == 'PENDING'
             ):
-
                 root_step.run_state = 'STARTED'
                 root_step.save(update_fields=['run_state'])
 
