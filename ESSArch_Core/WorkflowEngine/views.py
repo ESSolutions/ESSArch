@@ -30,6 +30,7 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -85,8 +86,10 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     queryset = ProcessStep.objects.none()
     serializer_class = ProcessStepSerializer
     permission_classes = (ActionPermissions,)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = ProcessStepFilter
+    ordering_fields = ['time_created']
+    ordering = ['time_created']
 
     def get_queryset(self):
         user = self.request.user
