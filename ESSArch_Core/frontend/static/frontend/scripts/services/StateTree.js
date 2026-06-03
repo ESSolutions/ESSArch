@@ -24,6 +24,9 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         )
       ).$promise;
     } else if ($state.includes('**.storageMigration.**') && angular.isUndefined(ip)) {
+      if (angular.equals(sortString, {})) {
+        sortString = '-time_created';
+      }
       promise = Step.query(
         angular.extend(
           {
