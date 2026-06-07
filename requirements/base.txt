@@ -54,4 +54,4 @@ requests-toolbelt==1.0.0
 setuptools==81.0.0
 tenacity==9.1.4
 warcio==1.7.4
-weasyprint==52.5
+weasyprint==68.0
