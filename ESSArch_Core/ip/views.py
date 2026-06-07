@@ -491,6 +491,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         view_type = self.request.query_params.get('view_type', 'aic')
         user = self.request.user
+        all_groups_flag = self.request.query_params.get('all_groups', 'false').lower() == 'true'
+        print(f'all_groups_flag: {all_groups_flag}')
         see_all = self.request.user.has_perm('ip.see_all_in_workspaces')
 
         workarea_params = {}
@@ -505,7 +507,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workareas = workareas.filter(user=self.request.user)
 
         if not self.detail and view_type == 'aic':
-            simple_inner = InformationPackage.objects.visible_to_user(user).exclude(
+            simple_inner = InformationPackage.objects.visible_to_user(user,
+                                                                      include_all_groups=all_groups_flag).exclude(
                 Q(state='Ingest Workspace') |
                 Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
@@ -556,7 +559,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             # self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
-            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+            filtered = InformationPackage.objects.visible_to_user(user, include_all_groups=all_groups_flag).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
                 Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
@@ -587,7 +590,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
-            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+            filtered = InformationPackage.objects.visible_to_user(user, include_all_groups=all_groups_flag).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
                 Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
@@ -619,7 +622,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
-            qs = InformationPackage.objects.visible_to_user(user).filter(
+            qs = InformationPackage.objects.visible_to_user(user, include_all_groups=all_groups_flag).filter(
                 Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             )
 

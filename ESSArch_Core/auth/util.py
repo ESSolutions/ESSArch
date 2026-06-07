@@ -148,24 +148,22 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
     ctype = ContentType.objects.get_for_model(queryset.model)
     handle_pk_field = _handle_pk_field(queryset)
 
-    groups_objs_total_queryset = queryset.model.objects.none()
     groups_objs_values = []
-    groups_objs_total_field_pk = 'pk'
+
+    group_objs_model = get_group_objs_model(queryset.model)
+
+    if group_objs_model.objects.is_generic():
+        groups_objs_total_queryset = group_objs_model.objects.filter(content_type=ctype)
+        groups_objs_total_field_pk = 'object_id'
+        if handle_pk_field is not None and include_no_auth_objs:
+            groups_objs_total_queryset = groups_objs_total_queryset.annotate(
+                obj_pk=handle_pk_field(expression=groups_objs_total_field_pk))
+            groups_objs_total_field_pk = 'obj_pk'
+    else:
+        groups_objs_total_queryset = group_objs_model.objects.all()
+        groups_objs_total_field_pk = 'content_object_id'
 
     if current_organization:
-        group_objs_model = get_group_objs_model(queryset.model)
-
-        if group_objs_model.objects.is_generic():
-            groups_objs_total_queryset = group_objs_model.objects.filter(content_type=ctype)
-            groups_objs_total_field_pk = 'object_id'
-            if handle_pk_field is not None and include_no_auth_objs:
-                groups_objs_total_queryset = groups_objs_total_queryset.annotate(
-                    obj_pk=handle_pk_field(expression=groups_objs_total_field_pk))
-                groups_objs_total_field_pk = 'obj_pk'
-        else:
-            groups_objs_total_queryset = group_objs_model.objects.all()
-            groups_objs_total_field_pk = 'content_object_id'
-
         if isinstance(current_organization, Group):
             org = current_organization
         else:
@@ -185,20 +183,22 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
                     roles__in=roles).values_list('codename', flat=True))
                 if not len(set(codenames).difference(set(role_perms_codenames))):
                     orgs.append(org_descendant)
-            # print('orgs: {}'.format(orgs))
+    else:
+        orgs = list(get_user_groups(user))
 
-            if group_objs_model.objects.is_generic():
-                field_pk = 'object_id'
-                groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
-                if handle_pk_field is not None:
-                    groups_objs_queryset = groups_objs_queryset.annotate(obj_pk=handle_pk_field(expression=field_pk))
-                    field_pk = 'obj_pk'
-            else:
-                field_pk = 'content_object_id'
-                groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
-            groups_objs_values = groups_objs_queryset.values_list(field_pk, flat=True)
-            # print('groups_objs_queryset: {}'.format(groups_objs_queryset))
+    # print('orgs: {}'.format(orgs))
 
+    if group_objs_model.objects.is_generic():
+        field_pk = 'object_id'
+        groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
+        if handle_pk_field is not None:
+            groups_objs_queryset = groups_objs_queryset.annotate(obj_pk=handle_pk_field(expression=field_pk))
+            field_pk = 'obj_pk'
+    else:
+        field_pk = 'content_object_id'
+        groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
+    groups_objs_values = groups_objs_queryset.values_list(field_pk, flat=True)
+    # print('groups_objs_queryset: {}'.format(groups_objs_queryset))
     # Now we should extract list of pk values for which we would filter
     # queryset
     user_model = get_user_obj_perms_model(queryset.model)
@@ -282,8 +282,7 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
         # print('ids_with_no_auth: {}'.format(ids_with_no_auth))
 
     queryset_filters = Q(pk__in=user_obj_perms_values) | Q(pk__in=groups_obj_perms_values)
-    if current_organization:
-        queryset_filters = queryset_filters | Q(pk__in=groups_objs_values)
+    queryset_filters = queryset_filters | Q(pk__in=groups_objs_values)
     if include_no_auth_objs:
         queryset_filters = Q(queryset_filters) | Q(pk__in=ids_with_no_auth)
     # print('queryset_filters: {}'.format(queryset_filters))
