@@ -134,7 +134,7 @@ def _get_agents(ip):
 def _get_sip_altrecordids(ip):
     sip_altrecordids = {}
     try:
-        for k, v in ip.get_profile_data('AIP')['SIP_ALTRECORDIDS'].items():
+        for k, v in ip.get_profile_data('aip')['SIP_ALTRECORDIDS'].items():
             sip_altrecordids[k] = {
                 '_SIP_ALTRECORDIDS_TYPE': k,
                 '_SIP_ALTRECORDIDS_VALUE': v[0]
@@ -230,7 +230,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
                 pass
 
         data['_AGENTS'] = (_get_agents, ip,)
-        data['_SIP_ALTRECORDIDS'] = _get_sip_altrecordids(ip)
+        data['_SIP_ALTRECORDIDS'] = (_get_sip_altrecordids, ip,)
 
         profile_ids = zip(
             lowercase_profile_types,

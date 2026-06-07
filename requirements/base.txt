@@ -1,5 +1,5 @@
 asgiref==3.9.1
-boto3==1.43.14
+boto3==1.43.24
 celery[tblib]==5.6.3
 cffi==2.0.0
 channels==4.3.2
@@ -7,9 +7,9 @@ channels-redis==4.3.0
 chardet==5.2.0
 click==8.4.1
 cryptography==45.0.7
-daphne==4.2.1
+daphne==4.2.2
 dj-rest-auth[with-social]==7.0.1
-django==5.2.14
+django==5.2.15
 django-allauth==65.11.1
 django-cors-headers==4.9.0
 django-countries-plus==2.2.0
@@ -22,7 +22,7 @@ django-languages-plus==2.1.1
 django-mptt==0.18.0
 django-nested-inline==0.4.6
 django-picklefield==3.4.0
-django-redis==6.0.0
+django-redis==7.0.0
 django-relativity==0.2.6
 djangorestframework==3.17.1
 django-json-widget==1.1.1
@@ -46,8 +46,8 @@ natsort==8.4.0
 opf-fido==1.6.1
 pyfakefs==6.2.0
 python-dateutil==2.8.2
-pywin32==311 ; platform_system=='Windows'
-redis==7.4.0
+pywin32==312 ; platform_system=='Windows'
+redis==7.4.1
 regex==2026.5.9
 requests==2.34.2
 requests-toolbelt==1.0.0

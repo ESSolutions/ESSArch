@@ -363,8 +363,8 @@ class InformationPackageManager(OrganizationManager):
     def get_queryset(self):
         return InformationPackageQuerySet(self.model, using=self._db).annotate_and_prefetch()
 
-    def visible_to_user(self, user):
-        return self.for_user(user, 'view_informationpackage')
+    def visible_to_user(self, user, include_all_groups=False):
+        return self.for_user(user, 'view_informationpackage', include_all_groups=include_all_groups)
 
     def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
                    include_inactive_ips=False):
