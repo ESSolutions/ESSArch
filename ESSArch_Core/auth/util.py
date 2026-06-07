@@ -149,6 +149,7 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
     handle_pk_field = _handle_pk_field(queryset)
 
     groups_objs_values = []
+    orgs = []
 
     group_objs_model = get_group_objs_model(queryset.model)
 
@@ -171,7 +172,6 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
 
         if org is not None:
             groups_objs_queryset = group_objs_model.objects.none()
-            orgs = []
             ctype = None
 
             for org_descendant in org.get_descendants(include_self=True):

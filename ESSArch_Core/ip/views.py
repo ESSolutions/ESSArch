@@ -492,7 +492,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         view_type = self.request.query_params.get('view_type', 'aic')
         user = self.request.user
         all_groups_flag = self.request.query_params.get('all_groups', 'false').lower() == 'true'
-        print(f'all_groups_flag: {all_groups_flag}')
         see_all = self.request.user.has_perm('ip.see_all_in_workspaces')
 
         workarea_params = {}
