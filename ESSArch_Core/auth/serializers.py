@@ -33,6 +33,7 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from ESSArch_Core.auth.backends import GroupRoleBackend
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
 
@@ -147,6 +148,20 @@ class UserLoggedInSerializer(UserSerializer):
         return self.context['request'].build_absolute_uri(reverse('me'))
 
     def get_permissions(self, obj):
+        request = self.context['request']
+
+        if request.query_params.get('all_groups') == 'true':
+            perms = set()
+
+            backend = GroupRoleBackend()
+
+            for group in get_organization_groups(obj):
+                perms.update(
+                    backend.get_all_permissions_for_group(obj, group)
+                )
+
+            return sorted(perms)
+
         return obj.get_all_permissions()
 
     def get_organizations(self, user):

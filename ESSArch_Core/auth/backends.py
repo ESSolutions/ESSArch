@@ -56,6 +56,19 @@ with folowing groups: {}'.format(obj._meta.model_name, obj, group_list)
             *_get_permission_objs(user_obj, go_obj).annotate(full_name=full_name).values_list('full_name')
         )))
 
+    def get_all_permissions_for_group(self, user_obj, group):
+        perms = Permission.objects.filter(
+            roles__in=get_user_roles(user_obj, group)
+        )
+
+        return perms.annotate(
+            full_name=Concat(
+                F('content_type__app_label'),
+                Value('.'),
+                F('codename')
+            )
+        ).values_list('full_name', flat=True)
+
     def has_perm(self, user_obj, perm, obj=None):
         if '.' in perm and obj is not None:
             app_label, perm = perm.split('.')
