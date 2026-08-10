@@ -139,7 +139,7 @@ jobs:
     runs-on: windows-latest
     env:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&extra_params=TrustServerCertificate=yes'
-      ESSARCH_REDIS_URL: 'redis://localhost:6379/1?protocol=2'
+      REDIS_URL_ESSARCH: 'redis://localhost:6379/1?protocol=2'
 
     steps:
       - uses: actions/checkout@v6
