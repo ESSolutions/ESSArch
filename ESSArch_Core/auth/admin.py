@@ -14,6 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.utils.decorators import method_decorator
+from django.utils.html import format_html
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
@@ -25,13 +26,18 @@ from groups_manager.models import (
     GroupType as GroupManagerGroupType,
     Member as GroupManagerMember,
 )
-from nested_inline.admin import NestedModelAdmin, NestedTabularInline
+from nested_inline.admin import (
+    NestedModelAdmin,
+    NestedStackedInline,
+    NestedTabularInline,
+)
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
 from ESSArch_Core.auth.models import (
     Group,
     GroupMember,
     GroupMemberRole,
+    GroupMemberRoleAssignment,
     GroupType,
     Member,
     ProxyGroup,
@@ -65,21 +71,85 @@ class GroupMemberForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['expiration_date'].required = False
-        self.fields['roles'].required = False
-        self.fields['group'].disabled = True
 
     class Meta:
         model = GroupMember
-        fields = '__all__'
+        # fields = '__all__'
+        fields = [
+            # 'group',
+            'member',
+            'expiration_date',
+            'is_locally_managed',
+        ]
 
 
-class GroupMemberInline(NestedTabularInline):
+class GroupMemberRoleAssignmentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['expiration_date'].required = False
+
+    class Meta:
+        model = GroupMemberRoleAssignment
+        fields = [
+            'role',
+            'expiration_date',
+            'is_locally_managed',
+        ]
+
+
+class GroupMemberRoleAssignmentInline(NestedTabularInline):
+    model = GroupMemberRoleAssignment
+    form = GroupMemberRoleAssignmentForm
+    extra = 0
+    fields = [
+        'role',
+        'expiration_date',
+        'is_locally_managed',
+    ]
+    verbose_name = _('role')
+    verbose_name_plural = _('roles')
+
+    def has_add_permission(self, request, obj=None):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return True
+
+    def has_delete_permission(self, request, obj=None):
+        return True
+
+
+class GroupMemberInline(NestedStackedInline):
     form = GroupMemberForm
-    filter_horizontal = ['roles']
-    fields = ['group', 'member', 'expiration_date', 'roles']
     model = GroupMember
     extra = 0
-    verbose_name_plural = _('Assigned roles')
+    fields = [
+        'group_heading',
+        'expiration_date',
+        'is_locally_managed',
+    ]
+
+    readonly_fields = ['group_heading']
+    inlines = [GroupMemberRoleAssignmentInline]
+
+    verbose_name = _('Group membership')
+    verbose_name_plural = _('Group memberships')
+
+    class Media:
+        css = {
+            'all': ('essauth/css/admin.css',)
+        }
+
+    def group_heading(self, obj):
+        if not obj.pk:
+            return ''
+
+        return format_html(
+            '<div class="group-membership-heading">{}</div>',
+            obj.group.name,
+        )
+
+    group_heading.short_description = _('Group')
 
     def has_add_permission(self, request, obj=None):
         return False

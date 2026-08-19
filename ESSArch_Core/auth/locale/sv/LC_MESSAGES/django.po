@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-14 16:48+0200\n"
+"POT-Creation-Date: 2026-08-19 15:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,119 +18,137 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: auth/admin.py:81
-msgid "Assigned roles"
-msgstr "Tilldelade roller"
-
-#: auth/admin.py:103
-msgid "Groups added above appears here when saving"
-msgstr "Grupper tillagda ovan visas här efter de har sparats"
-
-#: auth/admin.py:122
-msgid "Personal info"
-msgstr "Personlig info"
-
-#: auth/admin.py:123
-msgid "Permissions"
-msgstr "Behörigheter"
-
-#: auth/admin.py:125
-msgid "Important dates"
-msgstr "Viktiga datum"
-
-#: auth/admin.py:126
-msgid "Groups"
-msgstr "Grupper"
-
-#: auth/admin.py:226 auth/models.py:280 auth/models.py:288
-msgid "group type"
-msgstr "grupptyp"
-
-#: auth/admin.py:230 auth/models.py:295
-msgid "parent"
-msgstr "överordnad"
-
-#: auth/admin.py:309
-msgid "content type"
-msgstr ""
-
-#: auth/apps.py:7
-msgid "Authentication and Authorization"
-msgstr ""
-
-#: auth/models.py:173
-msgid "name"
-msgstr "namn"
-
-#: auth/models.py:174
-msgid "label"
-msgstr "etikett"
-
-#: auth/models.py:175 auth/models.py:248
-msgid "permissions"
-msgstr "behörigheter"
-
-#: auth/models.py:176 auth/models.py:296
-msgid "external id"
-msgstr "externt id"
-
-#: auth/models.py:187
+#: admin.py:110 models.py:179
 msgid "role"
 msgstr "roll"
 
-#: auth/models.py:188 auth/models.py:428
+#: admin.py:111 models.py:180 models.py:435
 msgid "roles"
 msgstr "roller"
 
-#: auth/models.py:231 auth/models.py:407 auth/models.py:420
+#: admin.py:142
+msgid "Group membership"
+msgstr "Gruppmedlemskap"
+
+#: admin.py:143
+msgid "Group memberships"
+msgstr "Gruppmedlemskap"
+
+#: admin.py:166
+#, fuzzy
+#| msgid "Groups"
+msgid "Group"
+msgstr "Grupper"
+
+#: admin.py:188
+msgid "Groups added above appears here when saving"
+msgstr "Grupper tillagda ovan visas här efter de har sparats"
+
+#: admin.py:207
+msgid "Personal info"
+msgstr "Personlig info"
+
+#: admin.py:208
+msgid "Permissions"
+msgstr "Behörigheter"
+
+#: admin.py:210
+msgid "Important dates"
+msgstr "Viktiga datum"
+
+#: admin.py:211
+msgid "Groups"
+msgstr "Grupper"
+
+#: admin.py:315 models.py:272 models.py:280
+msgid "group type"
+msgstr "grupptyp"
+
+#: admin.py:319 models.py:287
+msgid "parent"
+msgstr "överordnad"
+
+#: admin.py:323 models.py:175 models.py:288
+msgid "external id"
+msgstr "externt id"
+
+#: admin.py:363 models.py:173
+msgid "name"
+msgstr "namn"
+
+#: admin.py:391
+msgid "Duplicate selected items"
+msgstr "Duplicera valda objekt"
+
+#: admin.py:437
+msgid "content type"
+msgstr ""
+
+#: apps.py:7
+msgid "Authentication and Authorization"
+msgstr ""
+
+#: models.py:174 models.py:240
+msgid "permissions"
+msgstr "behörigheter"
+
+#: models.py:176
+msgid "codename"
+msgstr "namn"
+
+#: models.py:223 models.py:410 models.py:423
 msgid "group"
 msgstr "grupp"
 
-#: auth/models.py:232 auth/models.py:408
+#: models.py:224 models.py:411
 msgid "groups"
 msgstr "grupper"
 
-#: auth/models.py:239
+#: models.py:231
 msgid "user"
 msgstr "användare"
 
-#: auth/models.py:240
+#: models.py:232
 msgid "users"
 msgstr "användare"
 
-#: auth/models.py:247
+#: models.py:239
 msgid "permission"
 msgstr ""
 
-#: auth/models.py:281
+#: models.py:273
 msgid "group types"
 msgstr "grupptyper"
 
-#: auth/models.py:297
+#: models.py:289
 msgid "properties"
 msgstr ""
 
-#: auth/models.py:426
+#: models.py:429
 msgid "member"
 msgstr ""
 
-#: auth/models.py:429
+#: models.py:437 models.py:460
 msgid "expiration date"
 msgstr "utgångsdatum"
 
-#: auth/serializers.py:246
+#: models.py:438 models.py:461
+msgid "locally managed"
+msgstr "hanteras lokalt"
+
+#: serializers.py:286
 msgid "User account is disabled"
 msgstr "Användaren är inaktiverad"
 
-#: auth/serializers.py:249
+#: serializers.py:289
 msgid "Invalid username or password"
 msgstr "Felaktigt användarnamn eller lösenord"
 
-#: auth/serializers.py:258
+#: serializers.py:298
 msgid "E-mail is not verified."
 msgstr "E-postadressen är inte verifierad"
 
-#: auth/templates/essauth/admin/group/add_form.html:6
+#: templates/essauth/admin/group/add_form.html:6
 msgid ""
 "First, enter a name and optionally some permissions. Then, you'll be able to "
 "edit more group options."
@@ -138,16 +156,16 @@ msgstr ""
 "Ange först ett namn och eventuella rättigheter. Efter det kommer du att få "
 "fler gruppalternativ."
 
-#: auth/templates/essauth/admin/group/add_form.html:8
+#: templates/essauth/admin/group/add_form.html:8
 msgid "Enter a name."
 msgstr "Ange ett namn."
 
-#: auth/templates/essauth/admin/user/add_form.html:6
+#: templates/essauth/admin/user/add_form.html:6
 msgid ""
 "First, enter a username and password. Then, you'll be able to edit more user "
 "options."
 msgstr ""
 
-#: auth/templates/essauth/admin/user/add_form.html:8
+#: templates/essauth/admin/user/add_form.html:8
 msgid "Enter a username and password."
 msgstr "Ange användarnamn och lösenord"

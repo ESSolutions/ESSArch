@@ -336,7 +336,7 @@ class Group(GroupMixin):
             kwargs['content_object'] = obj
         return group_objs_model.objects.filter(**kwargs).delete()
 
-    def add_user(self, user, roles=None, expiration_date=None):
+    def add_user(self, user, roles=None, expiration_date=None, is_locally_managed=False):
         """Add a user to the group.
 
         :Parameters:
@@ -348,11 +348,15 @@ class Group(GroupMixin):
             from the group but is only an indicator to an external application
             to check if the membership still is valid
             (optional, default: ``None``)
+          - `is_locally_managed`: Whether the membership is managed locally and
+            should not be overridden by the central permission system
+            (optional, default: ``False``)
         """
 
-        return self.add_member(user.essauth_member, roles=roles, expiration_date=expiration_date)
+        return self.add_member(user.essauth_member, roles=roles, expiration_date=expiration_date,
+                               is_locally_managed=is_locally_managed)
 
-    def add_member(self, member, roles=None, expiration_date=None):
+    def add_member(self, member, roles=None, expiration_date=None, is_locally_managed=False,):
         """Add a member to the group.
 
         :Parameters:
@@ -364,6 +368,9 @@ class Group(GroupMixin):
             from the group but is only an indicator to an external application
             to check if the membership still is valid
             (optional, default: ``None``)
+          - `is_locally_managed`: Whether the membership is managed locally and
+            should not be overridden by the central permission system
+            (optional, default: ``False``)
         """
         if roles is None:
             roles = []
@@ -375,7 +382,11 @@ class Group(GroupMixin):
                 "You must save the member before to create a relation with groups")
         group_member_model = self.group_member_model
         group_member, _ = group_member_model.objects.get_or_create(
-            member=member, group=self, expiration_date=expiration_date,
+            member=member, group=self,
+            defaults={
+                'expiration_date': expiration_date,
+                'is_locally_managed': is_locally_managed,
+            },
         )
         if roles:
             for role in roles:
@@ -417,8 +428,14 @@ class GroupMember(GroupMemberMixin):
         on_delete=models.CASCADE,
         verbose_name=_('member'),
     )
-    roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
+    roles = models.ManyToManyField(
+        GroupMemberRole,
+        through='GroupMemberRoleAssignment',
+        related_name='group_memberships',
+        verbose_name=_('roles'),
+    )
     expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
+    is_locally_managed = models.BooleanField(_('locally managed'), default=False)
 
     def __str__(self):
         return self.group.name
@@ -427,6 +444,25 @@ class GroupMember(GroupMemberMixin):
         unique_together = ('group', 'member')
         abstract = False
         default_permissions = []
+
+
+class GroupMemberRoleAssignment(models.Model):
+    group_member = models.ForeignKey(
+        GroupMember,
+        on_delete=models.CASCADE,
+        related_name='role_assignments',
+    )
+    role = models.ForeignKey(
+        GroupMemberRole,
+        on_delete=models.CASCADE,
+        related_name='group_member_assignments',
+        verbose_name=_('role'),
+    )
+    expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
+    is_locally_managed = models.BooleanField(_('locally managed'), default=False)
+
+    class Meta:
+        unique_together = ('group_member', 'role')
 
 
 class UserProfile(models.Model):
