@@ -1,0 +1,105 @@
+/* =========================================================
+   Group memberships
+   ========================================================= */
+
+.group-membership-heading {
+    box-sizing: border-box;
+    width: fit-content;
+    min-width: 160px;
+
+    display: inline-block;
+
+    padding: 10px 16px;
+
+    margin: 0 0 12px 0;
+
+    background: #f5f7f9;
+    border-left: 5px solid #417690;
+
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
+/* Hide the "Group" label generated for group_heading */
+.field-group_heading label {
+    display: none !important;
+}
+
+/* Hide Django's automatic Group Membership: <name> header */
+.inline-group .inline-related h3 {
+    display: none;
+}
+
+
+/* Remove the space around the readonly field */
+
+.field-group_heading {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.field-group_heading > div {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.field-group_heading .readonly {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+
+/* =========================================================
+   Group membership container
+   ========================================================= */
+
+.inline-group .inline-related {
+    padding-top: 0;
+}
+
+
+/* =========================================================
+   Assigned roles
+   ========================================================= */
+
+.inline-group .inline-group {
+    margin-left: 40px;
+    border-left: 3px solid #ddd;
+}
+
+
+/* Assigned roles heading */
+
+.inline-group .inline-group h2 {
+    font-size: 14px;
+}
+
+
+/* Put date and time on the same line */
+.inline-group .datetime {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.inline-group .datetime br {
+    display: none;
+}
+
+.inline-group .datetime .vDateField {
+    width: 80px !important;
+    margin-right: 2px;
+}
+
+.inline-group .datetime .vTimeField {
+    width: 60px !important;
+    margin-left: 6px;
+}
+
+.inline-group .datetime .datetimeshortcuts {
+    display: inline-flex;
+    align-items: center;
+}
