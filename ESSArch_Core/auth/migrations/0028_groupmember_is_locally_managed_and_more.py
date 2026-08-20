@@ -8,9 +8,6 @@ def copy_group_member_roles(apps, schema_editor):
     """
     Copy the existing automatically-created GroupMember.roles M2M
     relationships into the new explicit GroupMemberRoleAssignment model.
-
-    At this point in the migration, the historical GroupMember model
-    still has the old automatically-created M2M through model.
     """
     GroupMember = apps.get_model('essauth', 'GroupMember')
     GroupMemberRoleAssignment = apps.get_model(
@@ -18,7 +15,8 @@ def copy_group_member_roles(apps, schema_editor):
         'GroupMemberRoleAssignment',
     )
 
-    # Get the OLD automatically-created M2M through model.
+    # At this point the historical model state still uses the old
+    # automatically-created M2M through model.
     old_through = GroupMember._meta.get_field(
         'roles'
     ).remote_field.through
@@ -72,7 +70,12 @@ class Migration(migrations.Migration):
         ),
 
         migrations.SeparateDatabaseAndState(
-            database_operations=[],
+            database_operations=[
+                migrations.RunSQL(
+                    sql='DROP TABLE IF EXISTS essauth_groupmember_roles',
+                    reverse_sql=migrations.RunSQL.noop,
+                ),
+            ],
             state_operations=[
                 migrations.AlterField(
                     model_name='groupmember',
