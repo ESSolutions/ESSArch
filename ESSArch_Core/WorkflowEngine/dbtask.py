@@ -38,6 +38,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
+from ESSArch_Core.db.locks import RenewableCacheLock
 from ESSArch_Core.db.utils import check_db_connection
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -47,33 +48,14 @@ from ESSArch_Core.WorkflowEngine.util import get_result
 
 User = get_user_model()
 
-# import time
-# from contextlib import contextmanager
-#
-# LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
-#
-# @contextmanager
-# def cache_lock(lock_id):
-#     timeout_at = time.monotonic() + LOCK_EXPIRE - 3
-#     # cache.add fails if the key already exists
-#     # Second value is arbitrary
-#     status = cache.add(lock_id, "lock", timeout=LOCK_EXPIRE)
-#     try:
-#         yield status
-#     finally:
-#         if time.monotonic() < timeout_at and status:
-#             # don't release the lock if we exceeded the timeout
-#             # to lessen the chance of releasing an expired lock
-#             # owned by someone else
-#             # also don't release the lock if we didn't acquire it
-#             cache.delete(lock_id)
-
 
 class DBTask(Task):
     abstract = True
     event_type = None
     queue = 'celery'
     track = True
+    lock_timeout = 300
+    lock_renew_interval = 60
     logger = logging.getLogger('essarch')
 
     def __call__(self, *args, **kwargs):
@@ -170,7 +152,12 @@ DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, se
             if self.parallel:
                 cm = nullcontext()
             else:
-                cm = cache.lock(ip.get_lock_key(), timeout=300)
+                cm = RenewableCacheLock(
+                    ip.get_lock_key(),
+                    timeout=self.lock_timeout,
+                    renew_interval=self.lock_renew_interval,
+                    logger=self.logger,
+                )
             try:
                 if ip.is_locked():
                     if not self.parallel:
@@ -183,7 +170,8 @@ DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, se
                                 ip, self.name, self.task_id))
                 with cm:
                     if not self.parallel:
-                        self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(self.name, self.task_id, ip))
+                        self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(
+                            self.name, self.task_id, ip))
                     else:
                         self.logger.info('Task: {} ({}) is running in parallel for IP: {}'.format(
                             self.name, self.task_id, ip))
@@ -204,17 +192,32 @@ when get ProcessTask'.format(self.name, self.task_id, self.step, self.ip))
                         raise
 
                     if t.run_if and not self.parse_params(t.run_if)[0]:
+                        self.logger.info(
+                            'TASK SKIPPED: run_if=False task=%s id=%s',
+                            self.name,
+                            self.task_id,
+                        )
                         r = None
                         t.hidden = True
                         t.save()
                     else:
                         r = self._run_task(*args, **kwargs)
+
                 if not self.parallel:
-                    self.logger.info('{} released lock for IP: {}'.format(self.task_id, str(ip)))
+                    self.logger.info(
+                        'Task: %s (%s) released lock for IP %s',
+                        self.name,
+                        self.task_id,
+                        ip,
+                    )
             except LockNotOwnedError:
-                self.logger.warning('Task: {} ({}) LockNotOwnedError for IP: {}'.format(
-                    self.name, self.task_id, str(ip)))
-                r = None
+                self.logger.exception(
+                    'Task: %s (%s) LockNotOwnedError for IP: %s',
+                    self.name,
+                    self.task_id,
+                    str(ip),
+                )
+                raise
             return r
 
         return self._run_task(*args, **kwargs)
@@ -237,8 +240,13 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
                 )
             res = self.run(*args, **kwargs)
         except exceptions.Ignore:
+            self.logger.warning("TASK IGNORED: %s (%s)", self.name, self.task_id)
+            raise
+        except exceptions.Retry as e:
+            self.logger.debug("TASK RETRY: %s (%s): %s", self.name, self.task_id, e)
             raise
         except Exception as e:
+            self.logger.warning("TASK EXCEPTION: %s (%s)", self.name, self.task_id)
             einfo = ExceptionInfo()
             self.failure(e, einfo)
             if self.eager:
@@ -255,6 +263,7 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
 
             raise
         else:
+            self.logger.info("TASK SUCCESS: %s (%s), result=%r", self.name, self.task_id, res)
             self.success(res, args, kwargs)
 
         return res
@@ -274,9 +283,15 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
         except ProcessStep.DoesNotExist:
             return
 
-        # with cache_lock(step.cache_lock_key):
-        with cache.lock(step.cache_lock_key, timeout=60):
-            step.clear_cache()
+        try:
+            with cache.lock(step.cache_lock_key, timeout=60):
+                step.clear_cache()
+        except LockNotOwnedError:
+            self.logger.exception(
+                'Could not release step cache lock: task=%s step=%s',
+                self.task_id,
+                self.step,
+            )
 
         return super().after_return(status, retval, task_id, args, kwargs, einfo)
 
@@ -316,6 +331,14 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
         timestamps
         '''
 
+        self.logger.debug(
+            "CELERY FAILURE: task=%s id=%s eager=%s exception=%r",
+            self.name,
+            self.task_id,
+            self.eager,
+            exc,
+        )
+
         if self.eager:
             self.update_state(task_id=self.task_id, state=celery_states.FAILURE)
             self.backend._store_result(
@@ -324,8 +347,15 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
             )
 
         if self.event_type:
-            msg = einfo.traceback
-            self.create_event(celery_states.FAILURE, msg, None, einfo)
+            try:
+                msg = einfo.traceback
+                self.create_event(celery_states.FAILURE, msg, None, einfo)
+            except Exception:
+                self.logger.exception(
+                    "Could not create failure event for task=%s id=%s",
+                    self.name,
+                    self.task_id,
+                )
 
     def create_success_event(self, msg, retval=None):
         return self.create_event(celery_states.SUCCESS, msg, retval, None)
@@ -346,6 +376,14 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
         We use our own version of on_success so that we can call it at the end
         of the current task but before the next task has started.
         '''
+
+        self.logger.debug(
+            "CELERY SUCCESS: task=%s id=%s eager=%s result=%r",
+            self.name,
+            self.task_id,
+            self.eager,
+            retval,
+        )
 
         if self.eager:
             self.update_state(task_id=self.task_id, state=celery_states.SUCCESS)
