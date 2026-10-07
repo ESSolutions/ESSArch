@@ -21,7 +21,6 @@ DEFAULT_MIMETYPE = 'application/octet-stream'
 
 
 class FormatIdentifier:
-    _fido = None
 
     def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False,
                  use_fido_pronom_formats=True, use_fido_extension_formats=True,
@@ -31,6 +30,10 @@ class FormatIdentifier:
         self.use_fido_pronom_formats = use_fido_pronom_formats
         self.use_fido_extension_formats = use_fido_extension_formats
         self.use_ess_formats = use_ess_formats
+        self._fido = None
+
+        # Cache MIME definitions for this FormatIdentifier instance
+        self._mimetypes = None
 
     @property
     def fido(self):
@@ -60,6 +63,9 @@ class FormatIdentifier:
 
     def _init_mimetypes(self):
         logger = logging.getLogger('essarch.fixity.format')
+        if self._mimetypes is not None:
+            return self._mimetypes
+
         try:
             mimetypes_file = Path.objects.get(
                 entity="mimetypes_definitionfile"
@@ -73,16 +79,17 @@ class FormatIdentifier:
                 mime.types_map_inv = ({}, {})
                 mime.read(mimetypes_file)
                 logger.info('Initiated mimetypes from %s' % mimetypes_file)
-                return mime
+                self._mimetypes = mime
+                return self._mimetypes
             else:
                 logger.debug('Custom mimetypes file %s does not exist' % mimetypes_file)
         except Path.DoesNotExist:
             logger.debug('No custom mimetypes file specified')
 
         logger.debug('Initiating default mimetypes')
-        mime = mimetypes.MimeTypes()
+        self._mimetypes = mimetypes.MimeTypes()
         logger.info('Initiated default mimetypes')
-        return mime
+        return self._mimetypes
 
     def get_mimetype(self, fname):
         logger = logging.getLogger('essarch.fixity.format')
@@ -90,7 +97,7 @@ class FormatIdentifier:
         mime = self._init_mimetypes()
 
         content_type, encoding = mime.guess_type(fname)
-        logger.info('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
+        logger.debug('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
 
         if content_type is None:
             if self.allow_unknown_file_types:
