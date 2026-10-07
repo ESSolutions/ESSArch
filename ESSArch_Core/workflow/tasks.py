@@ -213,6 +213,7 @@ def ReceiveAIP(self, workarea):
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
               aic_xml=False, object_identifier_value="", dst=None, local=True):
     aip = InformationPackage.objects.get(pk=aip)
+    self.set_progress(1, total=100)
 
     # if it is a received IP, i.e. from ingest and not from storage,
     # then we read it directly from disk and move it to the ingest workarea
@@ -258,6 +259,8 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
             storage_object = aip.get_fastest_readable_storage_object()
     else:
         storage_object = aip.get_fastest_readable_storage_object()
+
+    self.set_progress(10, total=100)
 
     aip.access(storage_object, self.get_processtask(), dst=dst, local=local)
 

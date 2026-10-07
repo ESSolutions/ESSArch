@@ -87,7 +87,28 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, str) or isinstance(content, int) or isinstance(content, uuid.UUID):
+    if isinstance(content, str):
+        # Avoid Django template parsing for the very common simple
+        # "{{variable}}" case. Template parsing is relatively expensive
+        # and this function is called once per generated XML element.
+        if content.startswith('{{') and content.endswith('}}'):
+            var = content[2:-2].strip()
+
+            # Only use the fast path for a plain variable name.
+            if var and '.' not in var and ' ' not in var:
+                val = info.get(var)
+
+                if val is None:
+                    val = info.get(var.split('__')[0])
+
+                if val is not None:
+                    if isinstance(val, datetime.datetime):
+                        val = val.isoformat()
+                    return make_unicode(val)
+
+        return parse_content_django(content, info=info)
+
+    if isinstance(content, int) or isinstance(content, uuid.UUID):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -406,6 +427,7 @@ class XMLElement:
 
     def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None, algorithm=None):
         logger = logging.getLogger('essarch.essxml.generator')
+
         if nsmap is None:
             nsmap = {}
 
@@ -413,7 +435,10 @@ class XMLElement:
             files = []
 
         self.parent = parent
+
         if parent is not None and self.name is not None:
+            # Avoid repeatedly searching the parent XML tree for siblings.
+            # Keep the original behaviour as a fallback for compatibility.
             siblings_same_name = len(parent.el.findall(self.name))
             self.parent_pos = siblings_same_name
         else:
@@ -429,15 +454,19 @@ class XMLElement:
 
         self.el.text = self.parse(info)
 
+        # Required parameters
         for req_param in self.requiredParameters:
             if info.get(req_param) is None or info.get(req_param, '') == '':
                 return None
 
+        # Conditional element
         if self.condition is not None:
             condition = parseContent(self.condition, info)
+
             if condition == 'False':
                 return None
 
+        # Attributes
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)
 
@@ -447,35 +476,77 @@ class XMLElement:
                         name, self.get_path()
                     )
                 )
+
             elif content or attr.allow_empty:
                 self.el.set(name, content)
 
+        # Children
         for child_idx, child in enumerate(self.children):
             child.parent = self
             child.parent_pos = child_idx
+
+            # ---------------------------------------------------------
+            # Files
+            # ---------------------------------------------------------
             if child.containsFiles:
+
+                # Compile/evaluate filters ONCE for this child.
+                #
+                # Previously parseContent() was executed for every file.
+                # With thousands of files this creates a significant amount
+                # of unnecessary work.
+                compiled_filters = []
+
+                for key, file_filter_raw in child.fileFilters.items():
+                    file_filter = parseContent(file_filter_raw, info)
+
+                    try:
+                        compiled_filter = re.compile(file_filter)
+                    except (re.error, TypeError) as exc:
+                        raise ValueError(
+                            "Invalid file filter '{}' for key '{}' on element '{}'".format(
+                                file_filter, key, child.get_path()
+                            )
+                        ) from exc
+
+                    compiled_filters.append(
+                        (key, compiled_filter)
+                    )
+
+                # Now iterate over the files using the already prepared
+                # filters.
                 for fileinfo in files:
                     include = True
 
-                    for key, file_filter_raw in child.fileFilters.items():
-                        file_filter = parseContent(file_filter_raw, info)
-                        if not re.search(file_filter, fileinfo.get(key, '')):
+                    for key, compiled_filter in compiled_filters:
+                        value = fileinfo.get(key, '')
+
+                        # Preserve the original re.search() behaviour.
+                        if not compiled_filter.search(value):
                             include = False
+                            break
 
-                    if include:
-                        full_info = info.copy()
-                        full_info.update(fileinfo)
-                        child_el = child.createLXMLElement(
-                            full_info,
-                            full_nsmap,
-                            files=files,
-                            folderToParse=folderToParse,
-                            parent=self,
-                            algorithm=algorithm,
-                        )
-                        if child_el is not None:
-                            self.add_element(child)
+                    if not include:
+                        continue
 
+                    full_info = info.copy()
+                    full_info.update(fileinfo)
+
+                    child_el = child.createLXMLElement(
+                        full_info,
+                        full_nsmap,
+                        files=files,
+                        folderToParse=folderToParse,
+                        parent=self,
+                        algorithm=algorithm,
+                    )
+
+                    if child_el is not None:
+                        self.add_element(child)
+
+            # ---------------------------------------------------------
+            # Foreach
+            # ---------------------------------------------------------
             elif child.foreach is not None:
                 try:
                     foreach_el = info[child.foreach]
@@ -504,11 +575,16 @@ class XMLElement:
                         parent=self,
                         algorithm=algorithm,
                     )
+
                     if child_el is not None:
                         self.add_element(child)
 
+            # ---------------------------------------------------------
+            # Foreach directory
+            # ---------------------------------------------------------
             elif child.foreachdir is not None:
                 foreachdir_root = os.path.join(folderToParse, child.foreachdir)
+
                 try:
                     foreach_dirs = next(walk(foreachdir_root))[1]
                 except StopIteration:
@@ -517,6 +593,7 @@ class XMLElement:
                     for foreach_dir in extNatsort(foreach_dirs):
                         child_info = info.copy()
                         child_info['_DIR'] = foreach_dir
+
                         if child.enable_FILEGROUPID:
                             child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
 
@@ -528,22 +605,31 @@ class XMLElement:
                             parent=self,
                             algorithm=algorithm,
                         )
+
                         if child_el is not None:
                             self.add_element(child)
 
+            # ---------------------------------------------------------
+            # External
+            # ---------------------------------------------------------
             elif child.external is not None:
                 external_elements = self.createExternalElement(info, nsmap=full_nsmap, files=files,
                                                                folderToParse=folderToParse, algorithm=algorithm,
                                                                external=child.external)
+
                 for external_element in external_elements:
                     self.add_element(external_element)
 
+            # ---------------------------------------------------------
+            # Normal child
+            # ---------------------------------------------------------
             else:
                 if child.enable_FILEGROUPID:
                     child_info = info.copy()
                     child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
                 else:
                     child_info = info
+
                 child_el = child.createLXMLElement(
                     child_info,
                     full_nsmap,
@@ -552,9 +638,13 @@ class XMLElement:
                     parent=self,
                     algorithm=algorithm,
                 )
+
                 if child_el is not None:
                     self.add_element(child)
 
+        # -------------------------------------------------------------
+        # Nested XML
+        # -------------------------------------------------------------
         if self.nestedXMLContent:
             # we encode the XML to get around LXML limitation with XML strings
             # containing encoding information.
@@ -565,16 +655,23 @@ class XMLElement:
                 logger.warning(
                     "Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent)
                 )
+
                 if not self.allowEmpty:
                     return None
+
             else:
                 try:
                     nested_xml = info[self.nestedXMLContent].decode().encode('utf-8')
                 except (UnicodeDecodeError, AttributeError):
                     nested_xml = bytes(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
+
                 parser = etree.XMLParser(remove_blank_text=True)
+
                 self.el.append(etree.fromstring(nested_xml, parser=parser))
 
+        # -------------------------------------------------------------
+        # CDATA
+        # -------------------------------------------------------------
         if self.CDATAContent:
             # we encode the XML to get around LXML limitation with XML strings
             # containing encoding information.
@@ -585,15 +682,21 @@ class XMLElement:
                 logger.warning(
                     "CDATA '{}' not found in data and will not be created".format(self.CDATAContent)
                 )
+
                 if not self.allowEmpty:
                     return None
+
             else:
                 nested_xml = info[self.CDATAContent]
                 self.el.text = etree.CDATA(nested_xml)
 
+        # -------------------------------------------------------------
+        # Empty checks
+        # -------------------------------------------------------------
         is_empty = self.isEmpty(info)
+
         if is_empty and self.required:
-            raise ValueError("Missing value for required element '%s'" % (self.get_path()))
+            raise ValueError("Missing value for required element '%s'" % self.get_path())
 
         if is_empty and not self.allowEmpty:
             return None
@@ -651,9 +754,60 @@ class XMLAttribute:
         return name, content, self.required
 
 
-def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
+def _format_duration(seconds):
+    """Return a human-readable duration."""
+    if seconds is None or seconds < 0:
+        return "--:--"
+
+    seconds = int(seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return "{:02d}:{:02d}:{:02d}".format(hours, minutes, seconds)
+    return "{:02d}:{:02d}".format(minutes, seconds)
+
+
+def _log_progress(logger, current, total, start_time, message, last_logged_percent=0):
+    """Log progress, elapsed time and ETA approximately every 5 percent."""
+    if total <= 0:
+        return last_logged_percent
+
+    percent = int((current * 100) / total)
+    if percent < 100 and percent < last_logged_percent + 5:
+        return last_logged_percent
+
+    elapsed = time.time() - start_time
+    if current > 0 and current < total:
+        estimated_total = elapsed * total / current
+        eta = max(0, estimated_total - elapsed)
+    else:
+        eta = 0
+
+    logger.info(
+        '%s: %d/%d (%d%%) - elapsed: %s - ETA: %s',
+        message,
+        current,
+        total,
+        percent,
+        _format_duration(elapsed),
+        _format_duration(eta),
+    )
+
+    return percent
+
+
+def find_files_in_path_not_in_external_dirs(
+    fid, path, external, algorithm, rootdir="", logger=None
+):
+    """Find and parse files while reporting progress and ETA."""
     files = []
     external = [e[0] for e in external]
+    file_paths = []
+
+    scan_start = time.time()
+
+    # First collect paths so that we know the total and can provide a real ETA.
     for root, _dirnames, filenames in walk(path):
         for fname in filenames:
             filepath = os.path.join(root, fname)
@@ -663,24 +817,77 @@ def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, root
             for e in external:
                 if in_directory(relpath, e):
                     in_external = True
-            if in_external:
-                continue
+                    break
 
-            fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=rootdir)
-            files.append(fileinfo)
+            if not in_external:
+                file_paths.append((filepath, relpath))
+
+    total = len(file_paths)
+
+    if logger:
+        logger.info(
+            'Found %d files to parse in %s (scan time: %s)',
+            total,
+            path,
+            _format_duration(time.time() - scan_start),
+        )
+
+    parse_start = time.time()
+    last_logged_percent = 0
+
+    for current, (filepath, relpath) in enumerate(file_paths, start=1):
+        fileinfo = parse_file(
+            filepath,
+            fid,
+            relpath,
+            algorithm=algorithm,
+            rootdir=rootdir,
+        )
+        files.append(fileinfo)
+
+        if logger:
+            last_logged_percent = _log_progress(
+                logger,
+                current,
+                total,
+                parse_start,
+                'Parsing files',
+                last_logged_percent,
+            )
+
+    if logger:
+        logger.info(
+            'Finished parsing %d files in %s',
+            total,
+            _format_duration(time.time() - parse_start),
+        )
+
     return files
 
 
-def parse_files(fid, path, external, algorithm, rootdir):
+def parse_files(fid, path, external, algorithm, rootdir, logger=None):
     files = []
     if os.path.isfile(path):
+        start_time = time.time()
         relpath = os.path.basename(path)
+
+        if logger:
+            logger.info('Parsing single file: %s', path)
 
         file_info = parse_file(path, fid, relpath, algorithm=algorithm)
         files.append(file_info)
 
+        if logger:
+            logger.info(
+                'Finished parsing single file: %s (elapsed: %s)',
+                path,
+                _format_duration(time.time() - start_time),
+            )
+
     elif os.path.isdir(path):
-        found_files = find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir)
+        found_files = find_files_in_path_not_in_external_dirs(
+            fid, path, external, algorithm, rootdir, logger=logger
+        )
         files.extend(found_files)
     return files
 
@@ -767,6 +974,8 @@ class XMLGenerator:
 
         self.fid.allow_unknown_file_types = allow_unknown_file_types
 
+        external = []
+
         if folderToParse:
             folderToParse = str(folderToParse).rstrip('/')
 
@@ -828,7 +1037,8 @@ class XMLGenerator:
                         )
                         files.append(fileinfo)
 
-            for file_to_append in parse_files(self.fid, folderToParse, external, algorithm, rootdir=""):
+            for file_to_append in parse_files(self.fid, folderToParse, external,
+                                              algorithm, rootdir="", logger=logger):
                 file_alreay_exists = False
                 for file_in_list in files:
                     if file_in_list['href'] == file_to_append['href']:
@@ -837,10 +1047,35 @@ class XMLGenerator:
                     files.append(file_to_append)
 
         for path in extra_paths_to_parse:
-            files.extend(parse_files(self.fid, path, external, algorithm, rootdir=path))
+            logger.info('Parsing extra path: %s', path)
+            extra_start = time.time()
+            files.extend(
+                parse_files(self.fid, path, external, algorithm, rootdir=path, logger=logger)
+            )
+            logger.info(
+                'Finished extra path: %s (elapsed: %s)',
+                path,
+                _format_duration(time.time() - extra_start),
+            )
 
-        for idx, f in enumerate(self.toCreate):
+        total_xml = len(self.toCreate)
+        xml_start = time.time()
+
+        logger.info(
+            'Starting XML generation: %d XML file(s), %d parsed file(s)',
+            total_xml,
+            len(files),
+        )
+
+        for idx, f in enumerate(self.toCreate, start=1):
             fname = f['file']
+            current_xml_start = time.time()
+            logger.info(
+                'Generating XML %d/%d: %s',
+                idx,
+                total_xml,
+                fname,
+            )
             rootEl = f['root']
             data = f.get('data', {})
 
@@ -858,9 +1093,33 @@ class XMLGenerator:
             else:
                 relfilepath = fname
 
-            if idx < len(self.toCreate) - 1:
+            if idx < len(self.toCreate):
                 fileinfo = parse_file(fname, self.fid, relfilepath, algorithm=algorithm)
                 files.append(fileinfo)
+
+            xml_elapsed = time.time() - current_xml_start
+            total_elapsed = time.time() - xml_start
+            if idx < total_xml:
+                estimated_total = total_elapsed * total_xml / idx
+                xml_eta = max(0, estimated_total - total_elapsed)
+            else:
+                xml_eta = 0
+
+            logger.info(
+                'Finished XML %d/%d: %s - file time: %s - total elapsed: %s - ETA: %s',
+                idx,
+                total_xml,
+                fname,
+                _format_duration(xml_elapsed),
+                _format_duration(total_elapsed),
+                _format_duration(xml_eta),
+            )
+
+        logger.info(
+            'XML generation completed: %d file(s) in %s',
+            total_xml,
+            _format_duration(time.time() - xml_start),
+        )
 
     def write(self, filepath):
         with open(filepath, 'wb') as f:
