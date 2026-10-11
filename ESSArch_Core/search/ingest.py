@@ -60,6 +60,29 @@ def bulk_index_documents(documents, batch_size=100):
 
 
 def index_document(tag_version, filepath, index_file_content=True, existing_content=None, save=True):
+    """
+    Indexes a file in Elasticsearch, optionally extracting its content.
+
+    If `existing_content` is provided, the existing content is reused
+    instead of extracting content from the file. Otherwise, file content
+    is extracted when `index_file_content` is enabled and the file format
+    and size allow it.
+
+    :param tag_version: The tag version associated with the file
+    :type tag_version: TagVersion
+    :param filepath: The path to the file to index
+    :type filepath: str
+    :param index_file_content: Whether to extract and index file content
+    :type index_file_content: bool
+    :param existing_content: Previously indexed content to reuse, if
+        provided. An empty string is treated as existing content.
+    :type existing_content: str, optional
+    :param save: Whether to save the document to Elasticsearch
+    :type save: bool
+    :return: The indexed document and the updated tag version
+    :rtype: tuple
+    """
+
     logger = logging.getLogger('essarch.search.ingest')
     exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
 
@@ -183,16 +206,28 @@ def get_tag_version_type(name):
 def index_path(ip, path, parent=None, group=None, index_file_content=True,
                existing_content=None, index=True, save=True):
     """
-    Indexes the file or directory at path to elasticsearch
+    Indexes a file or directory at the given path in Elasticsearch.
 
-    :param ip: The IP the path belongs to
+    :param ip: The information package the path belongs to
     :type ip: InformationPackage
-    :param path: The path of the file or directory
+    :param path: The path to the file or directory
     :type path: str
-    :param parent: The parent of the tag
-    :type parent: TagStructure
-    :return: The indexed elasticsearch document
-    :rtype: File or Directory
+    :param parent: The parent tag structure
+    :type parent: TagStructure, optional
+    :param group: The group to associate with the tag version
+    :type group: optional
+    :param index_file_content: Whether to extract and index file content
+    :type index_file_content: bool
+    :param existing_content: Previously indexed file content to reuse,
+        if provided
+    :type existing_content: str, optional
+    :param index: Whether to index the file or directory in Elasticsearch
+    :type index: bool
+    :param save: Whether to save the tag version
+    :type save: bool
+    :return: The indexed Elasticsearch document if indexing is enabled,
+        otherwise None, together with the tag version
+    :rtype: tuple
     """
 
     logger = logging.getLogger('essarch.search.ingest')

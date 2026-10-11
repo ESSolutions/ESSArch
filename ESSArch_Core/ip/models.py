@@ -2790,6 +2790,19 @@ class InformationPackage(models.Model):
         return ip_migrate_workflow_step
 
     def write_to_search_index(self, task):
+        """
+        Index the information package and its files in Elasticsearch.
+
+        Imports content type information when configured, indexes directories
+        and files according to the package profile, and bulk-indexes file
+        documents. File content extraction can be controlled through the
+        `index_files_content` profile setting.
+
+        Files already represented by the content type specification are
+        excluded from the regular file-indexing pass.
+
+        :param task: The task associated with the indexing operation
+        """
         logger = logging.getLogger('essarch.ip')
         srcdir = self.object_path
         ct_profile = self.get_profile('content_type')
@@ -2825,9 +2838,12 @@ class InformationPackage(models.Model):
                 ct_importer = get_importer(ct_importer_name)(task)
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
+        # Profile settings control file indexing and content extraction.
         index_files = self.get_profile_data(profile_type).get('index_files', True)
         index_files_content = self.get_profile_data(profile_type).get('index_files_content', True)
-        index_files_content_reuse_if_exists = False  # Can be used in future to resue content when retry a task
+
+        # Reserved for optionally reusing content from existing Elasticsearch documents.
+        index_files_content_reuse_if_exists = False
         if index_files is True or index_files == 'True':
             group = None
             try:
@@ -2849,6 +2865,8 @@ class InformationPackage(models.Model):
                         indexed_files.remove(src)
                     except ValueError:
                         # file has not been indexed yet
+                        # Collect file metadata without indexing the document yet.
+                        # Documents are indexed together in a bulk operation below.
                         _, tag_version = index_path(
                             self,
                             src,
@@ -2885,6 +2903,8 @@ class InformationPackage(models.Model):
 
                 documents.append(doc)
 
+            # Index all collected file documents in a single bulk operation
+            # instead of sending an individual Elasticsearch request per file.
             bulk_index_documents(documents)
 
         InformationPackageDocument.from_obj(self).save()
