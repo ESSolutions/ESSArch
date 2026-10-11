@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 from django.utils import timezone
-from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -22,6 +21,7 @@ from elasticsearch_dsl import (
     token_filter,
     tokenizer,
 )
+from elasticsearch_dsl.connections import get_connection
 
 from ESSArch_Core.search.documents import DocumentBase
 from ESSArch_Core.tags.models import StructureUnit, TagVersion
@@ -44,6 +44,45 @@ autocomplete_analyzer = analyzer(
     filter=[autocomplete_filter, 'lowercase'],
     tokenizer='standard'
 )
+
+
+def get_existing_file_content(document_ids):
+    logger = logging.getLogger('essarch.search.ingest')
+
+    client = get_connection('default')
+
+    response = client.mget(
+        index='document',
+        body={
+            'ids': [str(pk) for pk in document_ids],
+        },
+        _source=[
+            'content',
+            'attachment.content',
+        ],
+    )
+
+    result = {}
+
+    for item in response['docs']:
+        document_id = str(item['_id'])
+
+        if not item.get('found'):
+            result[document_id] = None
+            continue
+
+        source = item.get('_source', {})
+        content = source.get('content')
+        if content:
+            logger.info('Get existing Elasticsearch content for document %s', document_id)
+
+        if not content:
+            attachment = source.get('attachment') or {}
+            content = attachment.get('content')
+
+        result[document_id] = content
+
+    return result
 
 
 class Node(InnerDoc):
@@ -369,7 +408,7 @@ class File(Component):
         ).filter(elastic_index='document')
 
     @classmethod
-    def from_obj(cls, obj, archive=None):
+    def from_obj(cls, obj, archive=None, content=None):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
 
         if archive is not None:
@@ -387,19 +426,6 @@ class File(Component):
         ip_id = str(ip_id) if ip_id is not None else None
 
         current_version = getattr(obj.tag, 'current_version', None)
-
-        # Get already indexed file content from old_doc (field: content or attachment.content)
-        content = None
-        old_doc = None
-        try:
-            old_doc = File.get(id=str(obj.pk), index='document')
-        except NotFoundError:
-            pass
-        else:
-            if old_doc.content:
-                content = old_doc.content
-            elif old_doc.attachment and hasattr(old_doc.attachment, 'content'):
-                content = old_doc.attachment.content
 
         doc = File(
             _id=str(obj.pk),

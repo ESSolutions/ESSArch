@@ -40,20 +40,62 @@ def clear(indexes):
 
 
 @click.command()
-@click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update. \
-(agent, archive, component, directory, document, information_package, structure_unit)')
-@click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
-@click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the \
-index that are no longer in the database.')
-@click.option('--do-not-delete-old-index', 'do_not_delete_old', is_flag=True, default=False, help='Skip to clear old \
-index. Importent for document index (File) if you do not want to rebuild index from files.')
-@click.option('--index-file-content', 'index_file_content', is_flag=True, default=False, help='Rebuild index from \
-files for document index (File) "field - attachment".')
+@click.option(
+    '-i', '--index', 'indexes',
+    type=str,
+    multiple=True,
+    help='Index to rebuild. Can be specified multiple times. '
+         'Available indices: agent, archive, component, directory, '
+         'document, information_package, structure_unit.',
+)
+@click.option(
+    '-b', '--batch-size', 'batch_size',
+    type=int,
+    help='Number of documents to process in each indexing batch.',
+)
+@click.option(
+    '-r', '--remove-stale', 'remove_stale',
+    is_flag=True,
+    default=False,
+    help='Remove documents from the index that no longer exist in the database.',
+)
+@click.option(
+    '--do-not-delete-old-index', 'do_not_delete_old',
+    is_flag=True,
+    default=False,
+    help='Keep the existing index instead of clearing it before rebuilding. '
+         'Useful for the document index when existing file content should '
+         'be preserved rather than rebuilding the index from files.',
+)
+@click.option(
+    '--index-file-content', 'index_file_content',
+    is_flag=True,
+    default=False,
+    help='Extract and index file content from the original files for the '
+         'document index, including the attachment content field.',
+)
 @initialize
 def rebuild(indexes, batch_size, remove_stale, do_not_delete_old, index_file_content):
-    """Rebuild indices
     """
+    Rebuild one or more Elasticsearch indices.
 
+    By default, the selected indices are cleared before rebuilding.
+    Use --do-not-delete-old-index to retain the existing index contents.
+
+    For the document index, file content extraction is disabled by default.
+    Use --index-file-content to enable content extraction from the original
+    files during the rebuild.
+
+    :param indexes: Names of the indices to rebuild. Multiple indices can
+        be specified.
+    :param batch_size: Number of documents to process in each batch.
+    :param remove_stale: Whether to remove indexed documents that no longer
+        exist in the database.
+    :param do_not_delete_old: Whether to keep the existing index before
+        rebuilding.
+    :param index_file_content: Whether to extract and index content from
+        original files in the document index.
+    """
     indexes = get_indexes(indexes)
 
     for index in indexes:
