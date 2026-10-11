@@ -88,6 +88,7 @@ class DocumentBase(es.Document):
 
             try:
                 existing_content = None
+                existing_document_ids = set()
 
                 if cls.__name__ == 'File':
                     response = conn.mget(
@@ -99,7 +100,6 @@ class DocumentBase(es.Document):
                     )
 
                     existing_content = {}
-                    existing_document_ids = set()
 
                     for item in response['docs']:
                         if not item.get('found'):

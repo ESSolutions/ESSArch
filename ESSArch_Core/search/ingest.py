@@ -163,13 +163,21 @@ _TAG_VERSION_TYPE_CACHE = {}
 
 
 def get_tag_version_type(name):
-    if name not in _TAG_VERSION_TYPE_CACHE:
-        _TAG_VERSION_TYPE_CACHE[name] = TagVersionType.objects.get_or_create(
-            name=name,
-            archive_type=False,
-        )[0]
+    cached = _TAG_VERSION_TYPE_CACHE.get(name)
 
-    return _TAG_VERSION_TYPE_CACHE[name]
+    if cached is not None:
+        if TagVersionType.objects.filter(pk=cached.pk).exists():
+            return cached
+
+        del _TAG_VERSION_TYPE_CACHE[name]
+
+    tag_version_type, _ = TagVersionType.objects.get_or_create(
+        name=name,
+        archive_type=False,
+    )
+    _TAG_VERSION_TYPE_CACHE[name] = tag_version_type
+
+    return tag_version_type
 
 
 def index_path(ip, path, parent=None, group=None, index_file_content=True,
