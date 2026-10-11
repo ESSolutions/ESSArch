@@ -101,7 +101,11 @@ from ESSArch_Core.profiles.models import (
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
-from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.search.ingest import (
+    bulk_index_documents,
+    index_document,
+    index_path,
+)
 from ESSArch_Core.storage.exceptions import (
     StorageMediumError,
     StorageMediumFull,
@@ -116,7 +120,10 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
-from ESSArch_Core.tags.documents import InformationPackageDocument
+from ESSArch_Core.tags.documents import (
+    InformationPackageDocument,
+    get_existing_file_content,
+)
 from ESSArch_Core.util import (
     delete_path,
     find_destination,
@@ -2787,6 +2794,8 @@ class InformationPackage(models.Model):
         srcdir = self.object_path
         ct_profile = self.get_profile('content_type')
         indexed_files = []
+        file_ids = []
+        file_paths = []
 
         profile_type = self.get_package_type_display().lower()
         index_cits = self.get_profile_data(profile_type).get('index_cits', True)
@@ -2818,6 +2827,7 @@ class InformationPackage(models.Model):
 
         index_files = self.get_profile_data(profile_type).get('index_files', True)
         index_files_content = self.get_profile_data(profile_type).get('index_files_content', True)
+        index_files_content_reuse_if_exists = False  # Can be used in future to resue content when retry a task
         if index_files is True or index_files == 'True':
             group = None
             try:
@@ -2838,8 +2848,44 @@ class InformationPackage(models.Model):
                         # check if file has already been indexed
                         indexed_files.remove(src)
                     except ValueError:
-                        # file has not been indexed, index it
-                        index_path(self, src, group=group, index_file_content=index_files_content)
+                        # file has not been indexed yet
+                        _, tag_version = index_path(
+                            self,
+                            src,
+                            group=group,
+                            index_file_content=index_files_content,
+                            index=False,
+                            save=False,
+                        )
+                        file_ids.append(str(tag_version.pk))
+                        file_paths.append((src, tag_version))
+
+            existing_content = {}
+            if index_files_content_reuse_if_exists:
+                existing_content = get_existing_file_content(file_ids)
+
+            documents = []
+
+            for src, tag_version in file_paths:
+                content = None
+                if index_files_content_reuse_if_exists:
+                    content = existing_content.get(str(tag_version.pk))
+                doc, _ = index_document(
+                    tag_version,
+                    src,
+                    index_files_content,
+                    existing_content=content,
+                    save=False,
+                )
+
+                tag_version.save()
+
+                if group:
+                    group.add_object(tag_version)
+
+                documents.append(doc)
+
+            bulk_index_documents(documents)
 
         InformationPackageDocument.from_obj(self).save()
 

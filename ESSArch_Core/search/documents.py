@@ -87,7 +87,42 @@ class DocumentBase(es.Document):
             batch_qs = paginator.page(page_num).object_list
 
             try:
-                batch = cls.create_batch(batch_qs, index_file_content)
+                existing_content = None
+
+                if cls.__name__ == 'File':
+                    response = conn.mget(
+                        index='document',
+                        body={
+                            'ids': [str(obj.pk) for obj in batch_qs],
+                        },
+                        _source=['content', 'attachment.content'],
+                    )
+
+                    existing_content = {}
+                    existing_document_ids = set()
+
+                    for item in response['docs']:
+                        if not item.get('found'):
+                            continue
+
+                        document_id = str(item['_id'])
+                        existing_document_ids.add(document_id)
+
+                        source = item.get('_source', {})
+                        content = source.get('content')
+
+                        if content is None:
+                            attachment = source.get('attachment') or {}
+                            content = attachment.get('content')
+
+                        existing_content[document_id] = content
+
+                batch = cls.create_batch(
+                    batch_qs,
+                    index_file_content,
+                    existing_content=existing_content,
+                    existing_document_ids=existing_document_ids,
+                )
                 es_helpers.bulk(client=conn, actions=batch)
 
             except TransportError as e:
@@ -159,7 +194,7 @@ class DocumentBase(es.Document):
             time.sleep(0.3)
 
     @classmethod
-    def create_batch(cls, objects, index_file_content=False):
+    def create_batch(cls, objects, index_file_content=False, existing_content=None, existing_document_ids=None):
         """
         Creates the document dict for indexing.
         """
@@ -167,8 +202,31 @@ class DocumentBase(es.Document):
         MAX_INDEX_SIZE = getattr(settings, 'ELASTICSEARCH_MAX_INDEX_SIZE', None)
         batch = []
         for obj in objects:
-            doc = cls.from_obj(obj)
+            if cls.__name__ == 'File' and obj.tag.information_package:
+                ip = obj.tag.information_package
+                profile_type = ip.get_package_type_display().lower()
+                profile_data = ip.get_profile_data(profile_type)
+
+                index_files = profile_data.get('index_files', True)
+                if index_files not in (True, 'True'):
+                    continue
+
+            content = None
+            if existing_content is not None:
+                content = existing_content.get(str(obj.pk))
+
+            doc = cls.from_obj(obj, content=content) if cls.__name__ == 'File' else cls.from_obj(obj)
             obj_index_file_content = index_file_content
+
+            if cls.__name__ == 'File' and obj.tag.information_package:
+                ip = obj.tag.information_package
+                profile_type = ip.get_package_type_display().lower()
+                profile_data = ip.get_profile_data(profile_type)
+
+                obj_index_file_content = (
+                    obj_index_file_content and
+                    profile_data.get('index_files_content', True) in (True, 'True')
+                )
 
             if (cls.__name__ == 'File' and obj.tag.information_package and obj_index_file_content and
                     MAX_INDEX_SIZE and obj.custom_fields.get('size', 0) > MAX_INDEX_SIZE):
@@ -177,7 +235,12 @@ class DocumentBase(es.Document):
                     f'with size {pretty_size(obj.custom_fields.get("size", 0))}')
                 obj_index_file_content = False
 
-            if cls.__name__ == 'File' and obj.tag.information_package and obj_index_file_content:
+            if (
+                cls.__name__ == 'File' and
+                obj.tag.information_package and
+                obj_index_file_content and
+                str(obj.pk) not in (existing_document_ids or set())
+            ):
                 exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
                 format_registry_key = obj.custom_fields.get('formatkey', None)
                 if format_registry_key not in exclude_file_format_from_indexing_content:
