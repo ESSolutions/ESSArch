@@ -4,7 +4,7 @@ import uuid
 
 from django.conf import settings
 from elasticsearch import ConnectionError, RequestError, TransportError
-from elasticsearch.helpers import streaming_bulk
+from elasticsearch.helpers import BulkIndexError, streaming_bulk
 from elasticsearch_dsl.connections import get_connection
 
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -24,10 +24,54 @@ from ESSArch_Core.util import (
 format_identifier = FormatIdentifier()
 
 
-def bulk_index_documents(documents, batch_size=100):
+def bulk_index_documents(documents, batch_size=100, progress_callback=None, document_paths=None):
     client = get_connection('default')
+    logger = logging.getLogger('essarch.search.ingest')
 
+    document_paths = document_paths or {}
     actions = []
+    succeeded = 0
+    failed = 0
+    processed = 0
+
+    def index_batch(batch):
+        nonlocal succeeded, failed, processed
+
+        try:
+            for success, info in streaming_bulk(
+                client,
+                batch,
+                chunk_size=batch_size,
+                raise_on_error=True,
+            ):
+                if success:
+                    succeeded += 1
+                else:
+                    failed += 1
+                    logger.error(
+                        'Failed to bulk index document: %s', info
+                    )
+
+                processed += 1
+
+                if progress_callback:
+                    progress_callback(processed, succeeded, failed)
+
+        except BulkIndexError as exc:
+            for error in exc.errors:
+                operation = next(iter(error))
+                details = error[operation]
+                document_id = details.get('_id')
+                path = document_paths.get(document_id, '<unknown path>')
+
+                logger.error(
+                    'Failed to index file "%s" (document ID: %s): %s',
+                    path,
+                    document_id,
+                    details.get('error'),
+                )
+
+            raise
 
     for doc in documents:
         actions.append({
@@ -37,26 +81,13 @@ def bulk_index_documents(documents, batch_size=100):
         })
 
         if len(actions) >= batch_size:
-            for success, info in streaming_bulk(
-                client,
-                actions,
-                chunk_size=batch_size,
-            ):
-                if not success:
-                    logger = logging.getLogger('essarch.search.ingest')
-                    logger.error('Failed to bulk index document: %s', info)
-
+            index_batch(actions)
             actions = []
 
     if actions:
-        for success, info in streaming_bulk(
-            client,
-            actions,
-            chunk_size=batch_size,
-        ):
-            if not success:
-                logger = logging.getLogger('essarch.search.ingest')
-                logger.error('Failed to bulk index document: %s', info)
+        index_batch(actions)
+
+    return succeeded, failed
 
 
 def index_document(tag_version, filepath, index_file_content=True, existing_content=None, save=True):
@@ -255,6 +286,8 @@ def index_path(ip, path, parent=None, group=None, index_file_content=True,
         TagStructure.objects.get_or_create(tag=tag, parent=parent, structure=parent.structure)
 
     logger.debug('indexing {}'.format(path))
+
+    doc = None
 
     if index:
         if isfile:

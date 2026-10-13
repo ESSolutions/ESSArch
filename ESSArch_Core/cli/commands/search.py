@@ -85,16 +85,6 @@ def rebuild(indexes, batch_size, remove_stale, do_not_delete_old, index_file_con
     For the document index, file content extraction is disabled by default.
     Use --index-file-content to enable content extraction from the original
     files during the rebuild.
-
-    :param indexes: Names of the indices to rebuild. Multiple indices can
-        be specified.
-    :param batch_size: Number of documents to process in each batch.
-    :param remove_stale: Whether to remove indexed documents that no longer
-        exist in the database.
-    :param do_not_delete_old: Whether to keep the existing index before
-        rebuilding.
-    :param index_file_content: Whether to extract and index content from
-        original files in the document index.
     """
     indexes = get_indexes(indexes)
 
