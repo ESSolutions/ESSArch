@@ -2804,6 +2804,7 @@ class InformationPackage(models.Model):
         :param task: The task associated with the indexing operation
         """
         logger = logging.getLogger('essarch.ip')
+        task.set_progress(1, total=100)
         srcdir = self.object_path
         ct_profile = self.get_profile('content_type')
         indexed_files = []
@@ -2812,6 +2813,7 @@ class InformationPackage(models.Model):
 
         profile_type = self.get_package_type_display().lower()
         index_cits = self.get_profile_data(profile_type).get('index_cits', True)
+        total_cits_imported = 0
         if ct_profile is not None and (index_cits is True or index_cits == 'True'):
             cts = self.get_content_type_file()
             if cts is not None:
@@ -2822,8 +2824,11 @@ class InformationPackage(models.Model):
                     except KeyError:
                         logger.exception('No content type importer specified in profile')
                         raise
-                    ct_importer = get_importer(ct_importer_name)(task)
+                    ct_importer = get_importer(ct_importer_name)(task.get_processtask())
                     indexed_files = ct_importer.import_content(cts, ip=self)
+                    if indexed_files is not None:
+                        total_cits_imported = len(indexed_files)
+                    task.create_success_event("Content type specification imported")
                 else:
                     err = "Content type specification file not found"
                     logger.error('{err}: {path}'.format(err=err, path=cts))
@@ -2835,8 +2840,12 @@ class InformationPackage(models.Model):
                 except KeyError:
                     logger.exception('No content type importer specified in profile')
                     raise
-                ct_importer = get_importer(ct_importer_name)(task)
+                ct_importer = get_importer(ct_importer_name)(task.get_processtask())
                 indexed_files = ct_importer.import_content(cts, ip=self)
+                if indexed_files is not None:
+                    total_cits_imported = len(indexed_files)
+                task.create_success_event("Content type specification imported")
+            task.set_progress(2, total=100)
 
         # Profile settings control file indexing and content extraction.
         index_files = self.get_profile_data(profile_type).get('index_files', True)
@@ -2844,6 +2853,10 @@ class InformationPackage(models.Model):
 
         # Reserved for optionally reusing content from existing Elasticsearch documents.
         index_files_content_reuse_if_exists = False
+
+        total_documents_to_index = 0
+        total_dirs = 0
+
         if index_files is True or index_files == 'True':
             group = None
             try:
@@ -2857,6 +2870,7 @@ class InformationPackage(models.Model):
                 for d in dirs:
                     src = os.path.join(root, d)
                     index_path(self, src, group=group, index_file_content=index_files_content)
+                    total_dirs += 1
 
                 for f in files:
                     src = os.path.join(root, f)
@@ -2878,16 +2892,22 @@ class InformationPackage(models.Model):
                         file_ids.append(str(tag_version.pk))
                         file_paths.append((src, tag_version))
 
+            task.set_progress(3, total=100)
             existing_content = {}
             if index_files_content_reuse_if_exists:
+                task.set_progress(4, total=100)
                 existing_content = get_existing_file_content(file_ids)
+            task.set_progress(5, total=100)
 
             documents = []
+            document_paths = {}
+            total_files_to_process = len(file_paths)
 
-            for src, tag_version in file_paths:
+            for processed_files, (src, tag_version) in enumerate(file_paths, start=1):
                 content = None
                 if index_files_content_reuse_if_exists:
                     content = existing_content.get(str(tag_version.pk))
+
                 doc, _ = index_document(
                     tag_version,
                     src,
@@ -2902,12 +2922,36 @@ class InformationPackage(models.Model):
                     group.add_object(tag_version)
 
                 documents.append(doc)
+                document_paths[str(doc.meta.id)] = src
+
+                if total_files_to_process:
+                    # Reserve 10–70% for file processing and content extraction.
+                    progress = 10 + int(processed_files / total_files_to_process * 60)
+                    task.set_progress(progress, total=100)
 
             # Index all collected file documents in a single bulk operation
             # instead of sending an individual Elasticsearch request per file.
-            bulk_index_documents(documents)
+            total_documents_to_index = len(documents)
+
+            def report_progress(processed, succeeded, failed):
+                if total_documents_to_index:
+                    progress = 70 + int(processed / total_documents_to_index * 30)
+                    task.set_progress(progress, total=100)
+
+            succeeded, failed = bulk_index_documents(
+                documents,
+                progress_callback=report_progress,
+                document_paths=document_paths,
+            )
+
+            task.create_success_event(
+                f"Indexed {succeeded} files successfully; "
+                f"{failed} files failed"
+            )
 
         InformationPackageDocument.from_obj(self).save()
+
+        return total_documents_to_index, total_dirs, total_cits_imported
 
     def get_cached_storage_object(self):
         cache_method = self.policy.cache_storage

@@ -582,10 +582,12 @@ def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
                                            pretty_mb_per_sec(mb_per_sec))
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=50770)
 def WriteInformationPackageToSearchIndex(self):
     ip = self.get_information_package()
-    ip.write_to_search_index(self.get_processtask())
+    files_count, dirs_count, cits_count = ip.write_to_search_index(self)
+
+    return f"Indexed {files_count} files, {dirs_count} dirs and {cits_count} cits"
 
 
 @app.task(bind=True)
