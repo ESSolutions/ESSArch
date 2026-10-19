@@ -9,6 +9,38 @@ from elasticsearch_dsl import Mapping
 from elasticsearch_dsl.connections import get_connection
 
 
+def save_index_template(doctype, alias, pattern):
+    index_template = doctype._index.as_template(alias, pattern)
+
+    m = Mapping()
+    # m.meta('dynamic_templates', [
+    #     {
+    #         "strings_as_keyword": {
+    #             "match_mapping_type": "string",
+    #             "mapping": {
+    #                 "type": "keyword"
+    #             }
+    #         }
+    #     }
+    # ])
+    index_template.mapping(m)
+
+    template_body = index_template.to_dict()
+    template_body.pop('index_patterns', None)
+    order = template_body.pop('order', None)
+
+    body = {
+        'index_patterns': [pattern],
+        'template': template_body,
+    }
+
+    if order is not None:
+        body['priority'] = order
+
+    es = get_connection()
+    es.indices.put_index_template(name=alias, body=body)
+
+
 def setup_index(doctype):
     """
     Create the index template in elasticsearch specifying the mappings and any
@@ -19,28 +51,7 @@ def setup_index(doctype):
     alias = doctype._index._name
     pattern = '{alias}-*'.format(alias=alias)
 
-    # create an index template
-    index_template = doctype._index.as_template(alias, pattern)
-
-    # create a Mapping object and add dynamic templates
-    m = Mapping()
-    # m.meta('dynamic_templates', [
-    #     {
-    #         "strings_as_keyword": {
-    #             "match_mapping_type": "string",
-    #             "mapping": {
-    #             "type": "keyword"
-    #             }
-    #         }
-    #     }
-    # ])
-
-    # attach mapping to the template
-    index_template.mapping(m)
-
-    # upload the template into elasticsearch
-    # potentially overriding the one already there
-    index_template.save()
+    save_index_template(doctype, alias, pattern)
 
     # get the low level connection
     es = get_connection()
@@ -81,11 +92,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False, 
     pattern = '{alias}-*'.format(alias=alias)
     next_index = get_next_index(pattern)
 
-    # create an index template
-    index_template = doctype._index.as_template(alias, pattern)
-    # upload the template into elasticsearch
-    # potentially overriding the one already there
-    index_template.save()
+    save_index_template(doctype, alias, pattern)
 
     # create new index, it will use the settings from the template
     es.indices.create(index=next_index)

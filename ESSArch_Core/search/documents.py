@@ -2,6 +2,7 @@ import logging
 import os
 import time
 
+import click
 import elasticsearch_dsl as es
 from django.conf import settings
 from django.core.paginator import Paginator
@@ -83,115 +84,123 @@ class DocumentBase(es.Document):
 
         paginator = Paginator(queryset, batch_size)
 
-        for page_num in paginator.page_range:
-            batch_qs = paginator.page(page_num).object_list
+        with click.progressbar(
+            length=num,
+            label=f'Indexing {cls._index._name}',
+            show_pos=True,
+            show_percent=True,
+        ) as bar:
+            for page_num in paginator.page_range:
+                batch_qs = paginator.page(page_num).object_list
 
-            try:
-                existing_content = None
-                existing_document_ids = set()
+                try:
+                    existing_content = None
+                    existing_document_ids = set()
 
-                if cls.__name__ == 'File':
-                    response = conn.mget(
-                        index='document',
-                        body={
-                            'ids': [str(obj.pk) for obj in batch_qs],
-                        },
-                        _source=['content', 'attachment.content'],
-                    )
-
-                    existing_content = {}
-
-                    for item in response['docs']:
-                        if not item.get('found'):
-                            continue
-
-                        document_id = str(item['_id'])
-                        existing_document_ids.add(document_id)
-
-                        source = item.get('_source', {})
-                        content = source.get('content')
-
-                        if content is None:
-                            attachment = source.get('attachment') or {}
-                            content = attachment.get('content')
-
-                        existing_content[document_id] = content
-
-                batch = cls.create_batch(
-                    batch_qs,
-                    index_file_content,
-                    existing_content=existing_content,
-                    existing_document_ids=existing_document_ids,
-                )
-                es_helpers.bulk(client=conn, actions=batch)
-
-            except TransportError as e:
-                if e.status_code != 413:
-                    logger.exception('Elasticsearch transport error during bulk indexing')
-                    raise
-
-                logger.error(
-                    f'Bulk request too large (413) for batch size {len(batch_qs)}. '
-                    'Retrying documents individually.'
-                )
-
-                RETRY_WITHOUT_CONTENT_IF_TOO_LARGE = getattr(
-                    settings,
-                    'ELASTICSEARCH_RETRY_WITHOUT_CONTENT_IF_TOO_LARGE',
-                    False
-                )
-
-                for obj, action in zip(batch_qs, batch):
-                    try:
-                        es_helpers.bulk(client=conn, actions=[action])
-
-                    except TransportError as single_error:
-                        if single_error.status_code != 413:
-                            logger.exception(
-                                f"Elasticsearch error indexing document {obj.custom_fields.get('filename')} ({obj.pk})"
-                            )
-                            raise
-
-                        logger.warning(
-                            f"Document {obj.custom_fields.get('filename')} ({obj.pk}) too large for "
-                            "individual indexing."
+                    if cls.__name__ == 'File':
+                        response = conn.mget(
+                            index='document',
+                            body={
+                                'ids': [str(obj.pk) for obj in batch_qs],
+                            },
+                            _source=['content', 'attachment.content'],
                         )
 
-                        if index_file_content and RETRY_WITHOUT_CONTENT_IF_TOO_LARGE:
-                            logger.info(
-                                f"Retrying document {obj.custom_fields.get('filename')} ({obj.pk}) without "
-                                "file content."
-                            )
+                        existing_content = {}
 
-                            try:
-                                single_batch = cls.create_batch(
-                                    [obj],
-                                    index_file_content=False
-                                )
-                                es_helpers.bulk(client=conn, actions=single_batch)
+                        for item in response['docs']:
+                            if not item.get('found'):
+                                continue
 
-                            except Exception:
+                            document_id = str(item['_id'])
+                            existing_document_ids.add(document_id)
+
+                            source = item.get('_source', {})
+                            content = source.get('content')
+
+                            if content is None:
+                                attachment = source.get('attachment') or {}
+                                content = attachment.get('content')
+
+                            existing_content[document_id] = content
+
+                    batch = cls.create_batch(
+                        batch_qs,
+                        index_file_content,
+                        existing_content=existing_content,
+                        existing_document_ids=existing_document_ids,
+                    )
+                    es_helpers.bulk(client=conn, actions=batch)
+
+                except TransportError as e:
+                    if e.status_code != 413:
+                        logger.exception('Elasticsearch transport error during bulk indexing')
+                        raise
+
+                    logger.error(
+                        f'Bulk request too large (413) for batch size {len(batch_qs)}. '
+                        'Retrying documents individually.'
+                    )
+
+                    RETRY_WITHOUT_CONTENT_IF_TOO_LARGE = getattr(
+                        settings,
+                        'ELASTICSEARCH_RETRY_WITHOUT_CONTENT_IF_TOO_LARGE',
+                        False
+                    )
+
+                    for obj, action in zip(batch_qs, batch):
+                        try:
+                            es_helpers.bulk(client=conn, actions=[action])
+
+                        except TransportError as single_error:
+                            if single_error.status_code != 413:
                                 logger.exception(
-                                    f'Retry without content failed for document '
+                                    f"Elasticsearch error indexing document "
                                     f"{obj.custom_fields.get('filename')} ({obj.pk})"
                                 )
                                 raise
-                        else:
-                            logger.error(
-                                f"Not retrying without content for {obj.custom_fields.get('filename')} "
-                                f"({obj.pk}) due to settings"
+
+                            logger.warning(
+                                f"Document {obj.custom_fields.get('filename')} ({obj.pk}) too large for "
+                                "individual indexing."
                             )
-                            raise
 
-            except (ConnectionError, RequestError):
-                logger.exception('Elasticsearch connection/request error')
-                raise
+                            if index_file_content and RETRY_WITHOUT_CONTENT_IF_TOO_LARGE:
+                                logger.info(
+                                    f"Retrying document {obj.custom_fields.get('filename')} ({obj.pk}) without "
+                                    "file content."
+                                )
 
-            except Exception:
-                logger.exception('Unexpected error indexing')
-                raise
+                                try:
+                                    single_batch = cls.create_batch(
+                                        [obj],
+                                        index_file_content=False
+                                    )
+                                    es_helpers.bulk(client=conn, actions=single_batch)
 
-            time.sleep(0.3)
+                                except Exception:
+                                    logger.exception(
+                                        f'Retry without content failed for document '
+                                        f"{obj.custom_fields.get('filename')} ({obj.pk})"
+                                    )
+                                    raise
+                            else:
+                                logger.error(
+                                    f"Not retrying without content for {obj.custom_fields.get('filename')} "
+                                    f"({obj.pk}) due to settings"
+                                )
+                                raise
+
+                except (ConnectionError, RequestError):
+                    logger.exception('Elasticsearch connection/request error')
+                    raise
+
+                except Exception:
+                    logger.exception('Unexpected error indexing')
+                    raise
+
+                bar.update(len(batch_qs))
+                time.sleep(0.3)
 
     @classmethod
     def create_batch(cls, objects, index_file_content=False, existing_content=None, existing_document_ids=None):

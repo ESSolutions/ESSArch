@@ -36,6 +36,10 @@ class AgentDocument(DocumentBase):
         return Agent
 
     @classmethod
+    def get_index_queryset(cls):
+        return cls.get_model().objects.all().order_by('id')
+
+    @classmethod
     def from_obj(cls, obj):
         if obj.task is None:
             task_id = None
