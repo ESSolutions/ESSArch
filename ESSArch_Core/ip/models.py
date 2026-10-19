@@ -2808,145 +2808,193 @@ class InformationPackage(models.Model):
         srcdir = self.object_path
         ct_profile = self.get_profile('content_type')
         indexed_files = []
-        file_ids = []
-        file_paths = []
 
         profile_type = self.get_package_type_display().lower()
-        index_cits = self.get_profile_data(profile_type).get('index_cits', True)
+        profile_data = self.get_profile_data(profile_type)
+        batch_size = profile_data.get('index_batch_size', 100)
+        index_cits = profile_data.get('index_cits', True)
         total_cits_imported = 0
-        if ct_profile is not None and (index_cits is True or index_cits == 'True'):
+
+        # Import content type specification.
+        if ct_profile is not None and index_cits in (True, 'True'):
             cts = self.get_content_type_file()
+
             if cts is not None:
                 if os.path.isfile(cts):
                     logger.info('Found content type specification: {path}'.format(path=cts))
-                    try:
-                        ct_importer_name = ct_profile.specification['name']
-                    except KeyError:
-                        logger.exception('No content type importer specified in profile')
-                        raise
-                    ct_importer = get_importer(ct_importer_name)(task.get_processtask())
-                    indexed_files = ct_importer.import_content(cts, ip=self)
-                    if indexed_files is not None:
-                        total_cits_imported = len(indexed_files)
-                    task.create_success_event("Content type specification imported")
                 else:
                     err = "Content type specification file not found"
                     logger.error('{err}: {path}'.format(err=err, path=cts))
                     raise OSError(errno.ENOENT, err, cts)
             else:
-                logger.info('No content type specification specified in profile')
-                try:
-                    ct_importer_name = ct_profile.specification['name']
-                except KeyError:
-                    logger.exception('No content type importer specified in profile')
-                    raise
-                ct_importer = get_importer(ct_importer_name)(task.get_processtask())
-                indexed_files = ct_importer.import_content(cts, ip=self)
-                if indexed_files is not None:
-                    total_cits_imported = len(indexed_files)
-                task.create_success_event("Content type specification imported")
+                logger.info(
+                    'No content type specification specified in profile'
+                )
+
+            try:
+                ct_importer_name = ct_profile.specification['name']
+            except KeyError:
+                logger.exception('No content type importer specified in profile')
+                raise
+
+            ct_importer = get_importer(ct_importer_name)(task.get_processtask())
+            indexed_files = ct_importer.import_content(cts, ip=self)
+            if indexed_files is not None:
+                total_cits_imported = len(indexed_files)
+
+            task.create_success_event("Content type specification imported")
             task.set_progress(2, total=100)
 
-        # Profile settings control file indexing and content extraction.
-        index_files = self.get_profile_data(profile_type).get('index_files', True)
-        index_files_content = self.get_profile_data(profile_type).get('index_files_content', True)
-
-        # Reserved for optionally reusing content from existing Elasticsearch documents.
-        index_files_content_reuse_if_exists = False
+        # Profile settings.
+        index_files = profile_data.get('index_files', True)
+        index_files_content = profile_data.get('index_files_content', True)
+        index_files_content_reuse_if_exists = profile_data.get('index_files_content_reuse_if_exists', False)
 
         total_documents_to_index = 0
         total_dirs = 0
+        total_succeeded = 0
+        total_failed = 0
+        processed_files = 0
+        current_progress = 5
 
-        if index_files is True or index_files == 'True':
+        if index_files in (True, 'True'):
             group = None
             try:
-                group = self.get_organization()
+                organization = self.get_organization()
+                group = organization.group
             except ObjectDoesNotExist:
-                group = None
-            if group is not None:
-                group = group.group
+                pass
 
-            for root, dirs, files in walk(srcdir):
-                for d in dirs:
-                    src = os.path.join(root, d)
-                    index_path(self, src, group=group, index_file_content=index_files_content)
-                    total_dirs += 1
+            file_batch = []
 
-                for f in files:
-                    src = os.path.join(root, f)
-                    try:
-                        # check if file has already been indexed
-                        indexed_files.remove(src)
-                    except ValueError:
-                        # file has not been indexed yet
-                        # Collect file metadata without indexing the document yet.
-                        # Documents are indexed together in a bulk operation below.
-                        _, tag_version = index_path(
-                            self,
-                            src,
-                            group=group,
-                            index_file_content=index_files_content,
-                            index=False,
-                            save=False,
+            def process_batch(batch):
+                nonlocal total_documents_to_index
+                nonlocal total_succeeded, total_failed
+                nonlocal processed_files
+
+                if not batch:
+                    return
+
+                file_ids = [
+                    str(tag_version.pk)
+                    for _, tag_version in batch
+                ]
+
+                existing_content = {}
+
+                if index_files_content_reuse_if_exists in (True, 'True'):
+                    existing_content = get_existing_file_content(file_ids)
+
+                documents = []
+                document_paths = {}
+
+                # Prepare only the current batch.
+                for src, tag_version in batch:
+                    content = None
+
+                    if index_files_content_reuse_if_exists in (True, 'True'):
+                        content = existing_content.get(
+                            str(tag_version.pk)
                         )
-                        file_ids.append(str(tag_version.pk))
-                        file_paths.append((src, tag_version))
 
-            task.set_progress(3, total=100)
-            existing_content = {}
-            if index_files_content_reuse_if_exists:
-                task.set_progress(4, total=100)
-                existing_content = get_existing_file_content(file_ids)
-            task.set_progress(5, total=100)
+                    doc, _ = index_document(
+                        tag_version,
+                        src,
+                        index_files_content,
+                        existing_content=content,
+                        save=False,
+                    )
 
-            documents = []
-            document_paths = {}
-            total_files_to_process = len(file_paths)
+                    tag_version.save()
 
-            for processed_files, (src, tag_version) in enumerate(file_paths, start=1):
-                content = None
-                if index_files_content_reuse_if_exists:
-                    content = existing_content.get(str(tag_version.pk))
+                    if group:
+                        group.add_object(tag_version)
 
-                doc, _ = index_document(
-                    tag_version,
-                    src,
-                    index_files_content,
-                    existing_content=content,
-                    save=False,
+                    documents.append(doc)
+                    document_paths[str(doc.meta.id)] = src
+
+                total_documents_to_index += len(documents)
+
+                # Progress is based on files processed, not on a guessed
+                # total. It never decreases and remains below 100 until
+                # the complete operation has finished.
+                def report_progress(processed, succeeded, failed):
+                    nonlocal current_progress
+
+                    files_done = processed_files + processed
+                    total_files = self.object_num_items
+
+                    if total_files > 0:
+                        progress = 5 + int(90 * files_done / total_files)
+                        current_progress = min(95, max(current_progress, progress))
+
+                    task.set_progress(current_progress, total=100)
+
+                succeeded, failed = bulk_index_documents(
+                    documents,
+                    batch_size=batch_size,
+                    progress_callback=report_progress,
+                    document_paths=document_paths,
                 )
 
-                tag_version.save()
+                total_succeeded += succeeded
+                total_failed += failed
+                processed_files += len(batch)
 
-                if group:
-                    group.add_object(tag_version)
+                # Release references to this batch before processing
+                # the next one.
+                documents.clear()
+                document_paths.clear()
+                existing_content.clear()
 
-                documents.append(doc)
-                document_paths[str(doc.meta.id)] = src
+            task.set_progress(5, total=100)
 
-                if total_files_to_process:
-                    # Reserve 10–70% for file processing and content extraction.
-                    progress = 10 + int(processed_files / total_files_to_process * 60)
-                    task.set_progress(progress, total=100)
+            # Walk the package without collecting all file paths in memory.
+            for root, dirs, files in walk(srcdir):
+                for directory in dirs:
+                    src = os.path.join(root, directory)
 
-            # Index all collected file documents in a single bulk operation
-            # instead of sending an individual Elasticsearch request per file.
-            total_documents_to_index = len(documents)
+                    index_path(
+                        self,
+                        src,
+                        group=group,
+                        index_file_content=index_files_content,
+                    )
+                    total_dirs += 1
 
-            def report_progress(processed, succeeded, failed):
-                if total_documents_to_index:
-                    progress = 70 + int(processed / total_documents_to_index * 30)
-                    task.set_progress(progress, total=100)
+                for filename in files:
+                    src = os.path.join(root, filename)
 
-            succeeded, failed = bulk_index_documents(
-                documents,
-                progress_callback=report_progress,
-                document_paths=document_paths,
-            )
+                    try:
+                        # Files already handled by the CTS importer
+                        # are excluded from the regular indexing pass.
+                        indexed_files.remove(src)
+                        continue
+                    except ValueError:
+                        pass
+
+                    _, tag_version = index_path(
+                        self,
+                        src,
+                        group=group,
+                        index_file_content=index_files_content,
+                        index=False,
+                        save=False,
+                    )
+
+                    file_batch.append((src, tag_version))
+
+                    if len(file_batch) >= batch_size:
+                        process_batch(file_batch)
+                        file_batch = []
+
+            # Process the final partial batch.
+            if file_batch:
+                process_batch(file_batch)
 
             task.create_success_event(
-                f"Indexed {succeeded} files successfully; "
-                f"{failed} files failed"
+                f"Indexed {total_succeeded} files successfully; "
+                f"{total_failed} files failed"
             )
 
         InformationPackageDocument.from_obj(self).save()
