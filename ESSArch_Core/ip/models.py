@@ -2861,7 +2861,8 @@ class InformationPackage(models.Model):
             group = None
             try:
                 organization = self.get_organization()
-                group = organization.group
+                if organization is not None:
+                    group = organization.group
             except ObjectDoesNotExist:
                 pass
 
