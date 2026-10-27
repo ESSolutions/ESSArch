@@ -76,6 +76,34 @@ except ImportError:
 User = get_user_model()
 
 
+def clear_jwt_cookies(request, response, logger, refresh_token=None):
+    refresh_token = (
+        refresh_token or
+        request.COOKIES.get("refreshToken")
+    )
+
+    if refresh_token:
+        try:
+            RefreshToken(refresh_token).blacklist()
+        except Exception:
+            logger.warning(
+                "Could not blacklist refresh token during logout",
+                exc_info=True,
+            )
+
+    cookie_settings = settings.JWT_AUTH_COOKIE
+
+    for name in ("accessToken", "refreshToken"):
+        response.delete_cookie(
+            key=name,
+            path=cookie_settings.get("path", "/"),
+            domain=cookie_settings.get("domain"),
+            samesite=cookie_settings.get("samesite"),
+        )
+
+    return response
+
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -226,10 +254,22 @@ class TokenLoginView(KnoxLoginView):
 class LogoutView(rest_auth_LogoutView):
     def get(self, request, *args, **kwargs):
         logger = logging.getLogger('essarch.auth')
-        if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+
+        backend = request.session.get('_auth_user_backend')
+
+        logger.info("Logout requested: user=%s, backend=%s", request.user, backend)
+
+        if (
+            backend == 'djangosaml2.backends.Saml2Backend' and
+            (
+                getattr(settings, 'ENABLE_SSO_LOGIN', False) or
+                getattr(settings, 'ENABLE_ADFS_LOGIN', False)
+            )
+        ):
             try:
                 if _get_subject_id(request.saml_session):
-                    return saml2_logout().get(request)
+                    response = saml2_logout().get(request)
+                    return clear_jwt_cookies(request, response, logger)
             except Exception:
                 logger.exception('Failed to logout using SAML, no active identity found')
 
@@ -240,7 +280,9 @@ class LogoutView(rest_auth_LogoutView):
 
         self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
-        return HttpResponseRedirect(next_page)
+        response = HttpResponseRedirect(next_page)
+
+        return clear_jwt_cookies(request, response, logger)
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
@@ -388,13 +430,6 @@ class CookieTokenLogoutView(APIView):
         if not refresh_token:
             refresh_token = request.data.get("refresh")
 
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception as e:
-                logger.warning(f"Token blacklist failed: {e}")
-
         if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
                 if _get_subject_id(request.saml_session):
@@ -407,17 +442,4 @@ class CookieTokenLogoutView(APIView):
             status=status.HTTP_200_OK,
         )
 
-        response.delete_cookie(
-            key="refreshToken",
-            path=settings.JWT_AUTH_COOKIE.get("path", "/"),
-            domain=settings.JWT_AUTH_COOKIE.get("domain"),
-            samesite=settings.JWT_AUTH_COOKIE.get("samesite"),
-        )
-        response.delete_cookie(
-            key="accessToken",
-            path=settings.JWT_AUTH_COOKIE.get("path", "/"),
-            domain=settings.JWT_AUTH_COOKIE.get("domain"),
-            samesite=settings.JWT_AUTH_COOKIE.get("samesite"),
-        )
-
-        return response
+        return clear_jwt_cookies(request, response, logger, refresh_token=refresh_token)
