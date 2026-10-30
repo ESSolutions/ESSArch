@@ -1,4 +1,5 @@
 import importlib
+import json
 import os
 import shlex
 import uuid
@@ -84,12 +85,37 @@ class ActionTool(ExternalTool):
             'input_ext': ''.join(PurePath(filepath).suffixes)[1:],  # 'jpg'
         }
         kwargs.update(options)
-        if isinstance(self.cmd, str):
-            return self.cmd.format(**kwargs)
-        elif isinstance(self.cmd, dict):
-            return {k: v.format(**kwargs) for k, v in self.cmd.items()}
-        else:
-            raise TypeError(f"Invalid self.cmd type: {type(self.cmd)}")
+
+        def format_value(value):
+            if isinstance(value, str):
+                return value.format(**kwargs)
+            elif isinstance(value, dict):
+                return {k: format_value(v) for k, v in value.items()}
+            elif isinstance(value, list):
+                return [format_value(v) for v in value]
+            return value
+
+        cmd = self.cmd
+
+        if isinstance(cmd, str):
+            try:
+                cmd = json.loads(cmd)
+            except (ValueError, TypeError):
+                pass
+
+        if isinstance(cmd, (dict, list)):
+            cmd = format_value(cmd)
+
+            # Merge form options with configured nested options.
+            # Form values override configured default values.
+            if isinstance(cmd, dict) and isinstance(cmd.get('options'), dict):
+                cmd['options'].update(options)
+
+            return cmd
+        elif isinstance(cmd, str):
+            return cmd.format(**kwargs)
+
+        raise TypeError(f"Invalid self.cmd type: {type(cmd)}")
 
     def _run_application(self, filepath, rootdir, options, t=None, ip=None):
         from ESSArch_Core.util import normalize_path

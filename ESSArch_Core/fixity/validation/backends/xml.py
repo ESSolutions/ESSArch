@@ -323,7 +323,7 @@ class XMLComparisonValidator(DiffCheckValidator):
 
 
 class XMLSchemaValidator(BaseValidator):
-    def validate(self, filepath, expected=None):
+    def validate(self, filepath, options=None, expected=None):
         logger = logging.getLogger('essarch.fixity.validation.xml')
         if self.context:
             logger.debug('Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
@@ -337,6 +337,15 @@ class XMLSchemaValidator(BaseValidator):
         etree.clear_error_log()
         started = timezone.now()
         relpath = Path(os.path.relpath(filepath, rootdir)).as_posix()
+
+        # Remove previous results when retrying validation
+        Validation.objects.filter(
+            information_package_id=self.ip,
+            task=self.task,
+            validator=self.__class__.__name__,
+            filename=relpath,
+        ).delete()
+
         try:
             validate_against_schema(filepath, self.context, rootdir)
         except etree.DocumentInvalid as e:
