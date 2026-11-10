@@ -329,11 +329,19 @@ class ProcessStep(MPTTModel, Process):
         func = group if self.parallel else chain
 
         result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(
-            x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
-                x.create_retry_obj(), self
-            ) for x in result_list
-        )
+
+        workflow_items = []
+
+        for x in result_list:
+            if isinstance(x, ProcessStep):
+                item = x.retry(direct=False)
+            else:
+                item = create_sub_task(x.create_retry_obj(), self)
+
+            if not hasattr(item, 'tasks') or len(item.tasks):
+                workflow_items.append(item)
+
+        workflow = func(workflow_items)
 
         if direct:
             if self.eager:
