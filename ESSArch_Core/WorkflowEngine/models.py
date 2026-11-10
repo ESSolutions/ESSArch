@@ -320,7 +320,14 @@ class ProcessStep(MPTTModel, Process):
             retried__isnull=True
         ).order_by('processstep_pos')
 
-        if not tasks.exists() and not child_steps.exists():
+        # Check whether there are any retryable tasks in this step or
+        # any of its descendants.
+        retryable_tasks = ProcessTask.objects.filter(
+            processstep__in=self.get_descendants(include_self=True),
+            retried__isnull=True,
+        )
+
+        if not retryable_tasks.exists():
             if direct:
                 return EagerResult(self.celery_id, [], celery_states.SUCCESS)
 
