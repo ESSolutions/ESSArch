@@ -1,11 +1,11 @@
 asgiref==3.9.1
-boto3==1.43.125
-celery[tblib]==5.6.3
+boto3==1.43.127
+celery[tblib]==5.7.0
 cffi==2.1.1
 channels==4.3.2
 channels-redis==4.3.0
 chardet==7.7.0
-click==8.5.0
+click==8.5.1
 cryptography==45.0.7
 daphne==4.2.3
 dj-rest-auth[with-social]==7.2.0
@@ -47,7 +47,7 @@ opf-fido==1.6.1
 pyfakefs==6.3.2
 pywin32==312 ; platform_system=='Windows'
 redis==8.1.0
-regex==2026.9.29
+regex==2026.11.9
 requests==2.34.2
 requests-toolbelt==1.0.0
 setuptools==81.0.0

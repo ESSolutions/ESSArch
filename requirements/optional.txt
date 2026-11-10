@@ -1,13 +1,13 @@
-django-auth-ldap==4.8.0
+django-auth-ldap==5.4.0
 django-auto-logout==0.5.1
 django-axes==6.5.2
 pysaml2==7.5.0
-djangosaml2==1.12.0
+djangosaml2==1.13.0
 unoserver==3.6
-comtypes==1.4.17 ; platform_system=='Windows'
+comtypes==1.5.0 ; platform_system=='Windows'
 wfastcgi==3.0.0
 mod-wsgi==6.1.1
-mssql-django==1.6
-mysqlclient==2.3.0
+mssql-django==2.0.0
+mysqlclient==2.3.1
 psycopg2==2.9.13
 python-logstash-async==3.0.0
