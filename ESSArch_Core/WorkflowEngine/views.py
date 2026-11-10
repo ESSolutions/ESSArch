@@ -23,6 +23,7 @@
 """
 
 import itertools
+import logging
 
 from celery import states as celery_states
 from django.db import transaction
@@ -164,13 +165,28 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
+        logger = logging.getLogger('essarch.WorkflowEngine')
+        logger.warning(
+            "MANUAL RETRY: task_pk=%s celery_id=%s status=%s processstep=%s",
+            obj.pk, obj.celery_id, obj.status, obj.processstep_id
+        )
+
         if obj.status not in celery_states.EXCEPTION_STATES:
             raise exceptions.ParseError('Only failed tasks can be retried')
 
         root = obj.get_part_root_step()
+
+        logger.warning(
+            "MANUAL RETRY: root_step=%s root_celery_id=%s",
+            root.pk if root else None,
+            root.celery_id if root else None,
+        )
+
         if root is not None:
+            logger.warning("MANUAL RETRY: calling root.resume()")
             root.resume()
         else:
+            logger.warning("MANUAL RETRY: calling obj.retry()")
             obj.retry()
 
         return Response({'status': 'retries task'})

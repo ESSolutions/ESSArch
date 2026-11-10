@@ -90,6 +90,16 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
     # signature to be called when an error occurs in a task
     repr(link_error)
 
+    logger.debug(
+        "CREATE SUB TASK: process_task_pk=%s celery_id=%s "
+        "step=%s task_name=%s args=%r",
+        t.pk,
+        t.celery_id,
+        step.pk if step else None,
+        created.name,
+        t.args,
+    )
+
     res = created.signature(t.args, t.params, immutable=immutable).set(
         task_id=str(t.celery_id), link_error=link_error, queue=created.queue,
         headers=headers_hack,
@@ -229,10 +239,18 @@ class ProcessStep(MPTTModel, Process):
         else:
             logger.debug('Creating partial celery workflow')
 
-        workflow = func(
-            y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
-                x, self, link_error=on_error_group) for x in result_list
-            ) if not hasattr(y, 'tasks') or len(y.tasks))
+        workflow_items = []
+
+        for x in result_list:
+            if isinstance(x, ProcessStep):
+                item = x.resume(direct=False, reset_tasks=False)
+            else:
+                item = create_sub_task(x, self, link_error=on_error_group)
+
+            if not hasattr(item, 'tasks') or len(item.tasks):
+                workflow_items.append(item)
+
+        workflow = func(workflow_items)
         logger.debug('workflow: {} and link_error: {}'.format(workflow, on_error_group))
 
         if direct:
@@ -302,7 +320,14 @@ class ProcessStep(MPTTModel, Process):
             retried__isnull=True
         ).order_by('processstep_pos')
 
-        if not tasks.exists() and not child_steps.exists():
+        # Check whether there are any retryable tasks in this step or
+        # any of its descendants.
+        retryable_tasks = ProcessTask.objects.filter(
+            processstep__in=self.get_descendants(include_self=True),
+            retried__isnull=True,
+        )
+
+        if not retryable_tasks.exists():
             if direct:
                 return EagerResult(self.celery_id, [], celery_states.SUCCESS)
 
@@ -311,11 +336,19 @@ class ProcessStep(MPTTModel, Process):
         func = group if self.parallel else chain
 
         result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
-        workflow = func(
-            x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
-                x.create_retry_obj(), self
-            ) for x in result_list
-        )
+
+        workflow_items = []
+
+        for x in result_list:
+            if isinstance(x, ProcessStep):
+                item = x.retry(direct=False)
+            else:
+                item = create_sub_task(x.create_retry_obj(), self)
+
+            if not hasattr(item, 'tasks') or len(item.tasks):
+                workflow_items.append(item)
+
+        workflow = func(workflow_items)
 
         if direct:
             if self.eager:
@@ -325,7 +358,7 @@ class ProcessStep(MPTTModel, Process):
         else:
             return workflow
 
-    def resume(self, direct=True):
+    def resume(self, direct=True, reset_tasks=True):
         """
         Resumes the process step by running all pending child steps and tasks
 
@@ -340,11 +373,12 @@ class ProcessStep(MPTTModel, Process):
 
         logger = logging.getLogger('essarch.WorkflowEngine')
         logger.info('Resuming step {} ({})'.format(self.name, self.pk))
-        for t in ProcessTask.objects.filter(
-            processstep__in=self.get_descendants(include_self=True),
-            status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
-        ):
-            t.reset()
+        if reset_tasks:
+            for t in ProcessTask.objects.filter(
+                processstep__in=self.get_descendants(include_self=True),
+                status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
+            ):
+                t.reset()
         child_steps = self.get_children()
 
         step_descendants = self.get_descendants(include_self=True)
@@ -719,7 +753,8 @@ class ProcessTask(Process):
 
     def reset(self):
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.info('Reset task ({})'.format(self.pk))
+        old_celery_id = self.celery_id
+
         self.status = celery_states.PENDING
         self.celery_id = uuid.uuid4()
         self.time_started = None
@@ -728,6 +763,10 @@ class ProcessTask(Process):
         self.exception = ''
         self.progress = 0
         self.save()
+        logger.info(
+            "TASK RESET: pk=%s old_celery_id=%s new_celery_id=%s",
+            self.pk, old_celery_id, self.celery_id
+        )
         return self
 
     def run(self):

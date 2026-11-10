@@ -59,6 +59,17 @@ class DBTask(Task):
     logger = logging.getLogger('essarch')
 
     def __call__(self, *args, **kwargs):
+        # Celery internal task: it has no corresponding ESSArch ProcessTask.
+        # Let Celery handle chord completion without DBTask workflow handling.
+        if self.name == 'celery.chord_unlock':
+            self.logger.debug(
+                "CELERY INTERNAL TASK: %s id=%s headers=%r",
+                self.name,
+                self.task_id,
+                self.request.headers,
+            )
+            return super().__call__(*args, **kwargs)
+
         for k, v in self.result_params.items():
             kwargs[k] = get_result(self.step, v)
 
@@ -122,6 +133,13 @@ class DBTask(Task):
         return self.request.is_eager
 
     def _run(self, *args, **kwargs):
+        self.logger.debug(
+            "DBTask DEBUG: name=%s class=%s id=%s headers=%r",
+            self.name,
+            self.__class__,
+            self.task_id,
+            self.request.headers,
+        )
         self.extra_data = {}
         if self.ip:
             try:
