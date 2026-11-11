@@ -3,7 +3,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.db.models import F, Min, Model, Q, UUIDField, Value
+from django.db.models import (
+    Exists,
+    F,
+    Min,
+    Model,
+    OuterRef,
+    Q,
+    UUIDField,
+    Value,
+)
 from django.db.models.functions import Replace
 from django.shortcuts import _get_queryset
 from guardian.ctypes import get_content_type
@@ -266,24 +275,35 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
         group_field_pk = 'content_object_id'
     groups_obj_perms_values = groups_obj_perms_queryset.values_list(group_field_pk, flat=True)
 
-    ids_with_no_auth = queryset.model.objects.none()
+    queryset_filters = (
+        Q(pk__in=user_obj_perms_values) |
+        Q(pk__in=groups_obj_perms_values) |
+        Q(pk__in=groups_objs_values)
+    )
 
     if include_no_auth_objs:
-        # print('groups_objs_total_queryset: {}'.format(groups_objs_total_queryset))
-        # print('user_obj_perms_total_queryset: {}'.format(user_obj_perms_total_queryset))
-        # print('groups_obj_perms_total_queryset: {}'.format(groups_obj_perms_total_queryset))
-        ids_with_no_auth = queryset.exclude(
-            pk__in=groups_objs_total_queryset.values_list(groups_objs_total_field_pk, flat=True)
-        ).exclude(
-            pk__in=user_obj_perms_total_queryset.values_list(user_field_pk, flat=True)
-        ).exclude(
-            pk__in=groups_obj_perms_total_queryset.values_list(group_field_pk, flat=True)
+        queryset = queryset.alias(
+            _guardian_has_group_object=Exists(
+                groups_objs_total_queryset.filter(
+                    **{groups_objs_total_field_pk: OuterRef('pk')}
+                )
+            ),
+            _guardian_has_user_permission=Exists(
+                user_obj_perms_total_queryset.filter(
+                    **{user_field_pk: OuterRef('pk')}
+                )
+            ),
+            _guardian_has_group_permission=Exists(
+                groups_obj_perms_total_queryset.filter(
+                    **{group_field_pk: OuterRef('pk')}
+                )
+            ),
         )
-        # print('ids_with_no_auth: {}'.format(ids_with_no_auth))
 
-    queryset_filters = Q(pk__in=user_obj_perms_values) | Q(pk__in=groups_obj_perms_values)
-    queryset_filters = queryset_filters | Q(pk__in=groups_objs_values)
-    if include_no_auth_objs:
-        queryset_filters = Q(queryset_filters) | Q(pk__in=ids_with_no_auth)
-    # print('queryset_filters: {}'.format(queryset_filters))
+        queryset_filters |= Q(
+            _guardian_has_group_object=False,
+            _guardian_has_user_permission=False,
+            _guardian_has_group_permission=False,
+        )
+
     return queryset.filter(queryset_filters)

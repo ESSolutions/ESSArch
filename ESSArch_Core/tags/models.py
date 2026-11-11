@@ -1060,8 +1060,8 @@ class TagVersionType(models.Model):
 
 
 class TagVersionQuerySet(models.QuerySet):
-    def for_user(self, user, perms=None):
-        qs = get_objects_for_user(user, self, perms)
+    def for_user(self, user, perms=None, current_organization=True):
+        qs = get_objects_for_user(user, self, perms, current_organization=current_organization)
 
         user_security_level_perms = list(filter(
             lambda x: x.startswith('tags.security_level_'),
@@ -1070,9 +1070,9 @@ class TagVersionQuerySet(models.QuerySet):
 
         if len(user_security_level_perms) > 0:
             user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
-            return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
-        else:
-            return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
+            return qs.filter(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True))
+
+        return qs.filter(Q(security_level=0) | Q(security_level__isnull=True))
 
     def natural_sort(self):
         return natural_sort(self, 'reference_code')
@@ -1083,7 +1083,7 @@ class TagVersionManager(OrganizationManager):
         return TagVersionQuerySet(self.model, using=self._db)
 
     def for_user(self, user, perms=None):
-        return super().for_user(user, perms).for_user(user, perms)
+        return self.get_queryset().for_user(user, perms, current_organization=True)
 
 
 class Rendering(models.Model):
@@ -1403,6 +1403,12 @@ with folowing groups: {}'.format(self, group_list)
     class Meta:
         get_latest_by = 'create_date'
         ordering = ('reference_code',)
+        indexes = [
+            models.Index(
+                fields=['type', 'security_level'],
+                name='tagver_type_sec_idx',
+            ),
+        ]
 
 
 class TagVersionUserObjectPermission(UserObjectPermissionBase):
