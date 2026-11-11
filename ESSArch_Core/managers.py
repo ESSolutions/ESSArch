@@ -4,8 +4,8 @@ from ESSArch_Core.auth.util import get_objects_for_user
 
 
 class OrganizationQuerySet(models.QuerySet):
-    def for_user(self, user, perms=None):
-        return get_objects_for_user(user, self, perms)
+    def for_user(self, user, perms=None, current_organization=True):
+        return get_objects_for_user(user, self, perms, current_organization=current_organization)
 
 
 class OrganizationManager(models.Manager):
@@ -22,9 +22,6 @@ class OrganizationManager(models.Manager):
         :param perms: single permission string, or sequence of permission
         strings which should be checked
         """
-        if include_all_groups:
-            current_organization = False
-        else:
-            current_organization = True
+        current_organization = not include_all_groups
 
         return get_objects_for_user(user, self.model, perms, current_organization=current_organization)
