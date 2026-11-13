@@ -1102,7 +1102,7 @@ class Rendering(models.Model):
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
-    reference_code = models.CharField(max_length=255, blank=True)
+    reference_code = models.CharField(max_length=255, blank=True, db_index=True)
     type = models.ForeignKey('tags.TagVersionType', on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     description = models.CharField(max_length=255, blank=True)
