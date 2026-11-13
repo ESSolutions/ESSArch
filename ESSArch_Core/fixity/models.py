@@ -240,5 +240,11 @@ class Validation(models.Model):
 
     class Meta:
         get_latest_by = ['time_done']
+        indexes = [
+            models.Index(
+                fields=['task', 'time_started'],
+                name='fixval_task_time_idx',
+            ),
+        ]
 
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

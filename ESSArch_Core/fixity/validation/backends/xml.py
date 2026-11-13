@@ -5,6 +5,7 @@ from os import walk
 from pathlib import Path
 
 import click
+from django.conf import settings
 from django.utils import timezone
 from lxml import etree, isoschematron
 
@@ -41,6 +42,7 @@ class DiffCheckValidator(BaseValidator):
         self.rootdir = self.options.get('rootdir')
         self.recursive = self.options.get('recursive', True)
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
+        self.create_successful_validations = getattr(settings, 'CREATE_SUCCESSFUL_VALIDATIONS', False)
 
         self.initial_present = {}  # Map checksum -> fname
         self.initial_deleted = {}  # Map checksum -> fname
@@ -168,7 +170,9 @@ class DiffCheckValidator(BaseValidator):
         self.confirmed += 1
         msg = '{f} confirmed in xml'.format(f=relpath)
         logger.debug(msg)
-        return self._create_obj(relpath, True, msg)
+        if self.create_successful_validations:
+            return self._create_obj(relpath, True, msg)
+        return None
 
     def _validate_deleted_files(self, objs):
         logger = logging.getLogger('essarch.fixity.validation.xml')
@@ -210,6 +214,56 @@ class DiffCheckValidator(BaseValidator):
                 logger.error(msg)
                 objs.append(self._create_obj(f, False, msg))
 
+    def _create_summary_obj(self, path, delete_count):
+        failed = (
+            self.added +
+            self.changed +
+            self.renamed +
+            delete_count
+        )
+
+        passed = failed == 0
+
+        if passed:
+            msg = (
+                'Successfully compared {path} against {xml}. {cfmd} files confirmed.'
+            ).format(
+                path=path,
+                xml=self.context,
+                cfmd=self.confirmed
+            )
+        else:
+            msg = (
+                'Comparison of {path} against {xml} failed: '
+                '{cfmd} confirmed, {a} added, {c} changed, '
+                '{r} renamed, {d} deleted'
+            ).format(
+                path=path,
+                xml=self.context,
+                cfmd=self.confirmed,
+                a=self.added,
+                c=self.changed,
+                r=self.renamed,
+                d=delete_count
+            )
+
+        obj = self._create_obj(path, passed, msg)
+
+        obj.specification = {
+            'context': self.context,
+            'options': self.options,
+            'summary': {
+                'confirmed': self.confirmed,
+                'added': self.added,
+                'changed': self.changed,
+                'renamed': self.renamed,
+                'deleted': delete_count,
+                'total_failed': failed,
+            }
+        }
+
+        return obj
+
     def validate(self, path, expected=None):
         logger = logging.getLogger('essarch.fixity.validation.xml')
         xmlfile = self.context
@@ -232,6 +286,8 @@ class DiffCheckValidator(BaseValidator):
         self._validate_present_files(objs)
 
         objs = [o for o in objs if o is not None]
+        summary_obj = self._create_summary_obj(path, delete_count)
+        objs.append(summary_obj)
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
@@ -289,7 +345,9 @@ class XMLComparisonValidator(DiffCheckValidator):
         for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files, recursive=self.recursive):
             if f in self.exclude:
                 continue
-            objs.append(self._validate(f))
+            obj = self._validate(f)
+            if obj is not None:
+                objs.append(obj)
 
         delete_count = self._validate_deleted_files(objs)
         self._validate_present_files(objs)
@@ -305,19 +363,38 @@ class XMLComparisonValidator(DiffCheckValidator):
             except KeyError:
                 self.present[checksum_in_context_file] = [path]
 
-        objs = [o for o in objs if o is not None]
+        # Create summary Validation object
+        summary_obj = self._create_summary_obj(path, delete_count)
+        objs.append(summary_obj)
+
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = ('Comparison of {path} against {xml} failed: '
-                   '{cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted').format(
-                path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
-                d=delete_count)
+            msg = (
+                'Comparison of {path} against {xml} failed: '
+                '{cfmd} confirmed, {a} added, {c} changed, '
+                '{r} renamed, {d} deleted'
+            ).format(
+                path=path,
+                xml=self.context,
+                cfmd=self.confirmed,
+                a=self.added,
+                c=self.changed,
+                r=self.renamed,
+                d=delete_count
+            )
             logger.warning(msg)
             raise ValidationError(msg)
 
-        msg = "Successful comparison of {path} against {xml}. {num} files confirmed.".format(
-            path=path, xml=self.context, num=len(objs))
+        msg = (
+            'Successful comparison of {path} against {xml}. '
+            '{num} files confirmed.'
+        ).format(
+            path=path,
+            xml=self.context,
+            num=self.confirmed
+        )
+
         logger.info(msg)
         return msg
 
