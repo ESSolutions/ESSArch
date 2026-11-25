@@ -48,8 +48,8 @@ Now whenever you run `git commit`, all hooks defined in `.pre-commit-config.yaml
 ## Resources
 
 - [Documentation](https://docs.essarch.org/)
-- [ES Solutions website](http://essolutions.se)
+- [ES Solutions website](https://essolutions.se)
 
 # Service and support
 
-Service and support on ESSArch Core is regulated in maintenance contract with ES Solutions AB. A case is registered on the support portal http://projects.essolutions.se
+Service and support on ESSArch Core is regulated in maintenance contract with ES Solutions AB. A case is registered on the support portal https://projects.essolutions.se

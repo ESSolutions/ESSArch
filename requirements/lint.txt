@@ -1,6 +1,6 @@
-doc8==1.1.2
-flake8==7.1.1
-flake8-assertive==2.1.0
-flake8-bugbear==24.8.19
-isort==5.13.2
-autopep8==2.3.1
+doc8==2.0.0
+flake8==7.5.0
+flake8-assertive==2.3.0
+flake8-bugbear==26.11.22
+isort==9.0.2
+autopep8==2.3.2
