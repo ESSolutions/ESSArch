@@ -18,12 +18,11 @@ class FileFormatNotAllowed(ESSArchException):
 
 class ValidationError(ESSArchException):
     def __init__(self, message, errors=None):
-        super().__init__(message)
+        self.errors = errors if errors is not None else []
+        super().__init__(message, errors)
 
-        if errors is None:
-            errors = []
-
-        self.errors = errors
+    def __str__(self):
+        return str(self.args[0])
 
 
 class Locked(APIException, ESSArchException):
