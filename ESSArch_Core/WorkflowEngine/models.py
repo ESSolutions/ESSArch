@@ -88,7 +88,7 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
 
     # For some reason, __repr__ needs to be called for the link_error
     # signature to be called when an error occurs in a task
-    repr(link_error)
+    repr(link_error)  # noqa: B018
 
     logger.debug(
         "CREATE SUB TASK: process_task_pk=%s celery_id=%s "

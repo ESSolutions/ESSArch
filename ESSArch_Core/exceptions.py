@@ -18,7 +18,7 @@ class FileFormatNotAllowed(ESSArchException):
 
 class ValidationError(ESSArchException):
     def __init__(self, message, errors=None):
-        super().__init__(message)
+        super().__init__(message, errors)
 
         if errors is None:
             errors = []

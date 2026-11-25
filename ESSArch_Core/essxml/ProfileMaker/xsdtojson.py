@@ -73,12 +73,6 @@ def getSuffix(tag):
 
 def analyze2(element, tree, usedTypes=None, minC=1, maxC=1, choise=-1):
     global choiseCount
-    global elCount
-    global complexTypes
-    global attributeGroups
-    global finishedGroups
-    global attributesComplexTypes
-    global elementTypes
 
     if usedTypes is None:
         usedTypes = []
@@ -244,8 +238,6 @@ def analyze2(element, tree, usedTypes=None, minC=1, maxC=1, choise=-1):
 
 
 def parseAttribute(element):
-    global complexTypes
-    global attributeGroups
     att = OrderedDict()
     name = element.get('name')
 
@@ -310,10 +302,6 @@ def parseAttribute(element):
 
 
 def generateExtensionRef(schemadoc, namespace):
-    global complexTypes
-    global attributeGroups
-    global groups
-    global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
     for key, value in schemadoc.attrib.items():
@@ -376,10 +364,6 @@ def generateExtensionRef(schemadoc, namespace):
 
 
 def generateJsonRes(schemadoc, rootElement, namespace):
-    global complexTypes
-    global attributeGroups
-    global groups
-    global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
 
     for key, value in schemadoc.attrib.items():
