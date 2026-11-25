@@ -50,7 +50,7 @@ redis==8.1.0
 regex==2026.11.9
 requests==2.34.2
 requests-toolbelt==1.0.0
-setuptools==81.0.0
+setuptools==84.1.0
 tenacity==9.2.1
 warcio==1.7.4
 weasyprint==52.5
