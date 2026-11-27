@@ -3,6 +3,7 @@ FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
 RUN apk add --no-cache g++ git make python3
+RUN npm install --global yarn
 COPY .git ./.git
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js webpack.prod.babel.js tsconfig.json ./
 COPY ESSArch_Core/frontend/static/frontend ./ESSArch_Core/frontend/static/frontend
