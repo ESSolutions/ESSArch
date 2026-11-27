@@ -4,7 +4,7 @@ ARG ELASTICSEARCH_VERSION
 FROM ${ELASTICSEARCH_DISTRO}:${ELASTICSEARCH_VERSION}
 
 # Install plugins
-RUN elasticsearch-plugin install --batch ingest-attachment
+# RUN elasticsearch-plugin install --batch ingest-attachment
 
 ## Certs
 #RUN yum install -y openssl
