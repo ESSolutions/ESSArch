@@ -1242,20 +1242,7 @@ def installPipelines():
 
     conn = get_connection()
     client = IngestClient(conn)
-    client.put_pipeline(id='ingest_attachment', body={
-        'description': "Extract attachment information",
-        'processors': [
-            {
-                "attachment": {
-                    "field": "data",
-                    "indexed_chars": "-1"
-                },
-                "remove": {
-                    "field": "data"
-                }
-            }
-        ]
-    })
+
     client.put_pipeline(id='add_timestamp', body={
         'description': "Adds an index_date timestamp",
         'processors': [
